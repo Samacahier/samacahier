@@ -23,6 +23,18 @@ export async function listVentes(commercantId: string): Promise<Vente[]> {
   return data ?? [];
 }
 
+export async function getVenteById(id: string): Promise<Vente | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ventes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
 export async function createVente(input: VenteFormInput) {
   const supabase = await createClient();
   const {

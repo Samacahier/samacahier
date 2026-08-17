@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard/queries";
 import StatCard from "@/components/dashboard/StatCard";
+import DashboardNav from "@/components/dashboard/DashboardNav";
 
 const STATS_VIDES: DashboardStats = {
   totalVentesMontant: 0,
@@ -22,6 +23,8 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Tableau de bord</h1>
+
+      <DashboardNav />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StatCard

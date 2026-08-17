@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import VenteForm from "./VenteForm";
 import { deleteVente } from "@/lib/ventes/queries";
 import type { Vente } from "@/types/database";
@@ -79,6 +80,14 @@ export default function VenteList({ ventes }: VenteListProps) {
                   <td className="py-2">{vente.mode_paiement}</td>
                   <td className="py-2">
                     <div className="flex gap-2">
+                      <Link
+                        href={`/ventes/${vente.id}/recu`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        Reçu
+                      </Link>
                       <button
                         type="button"
                         onClick={() => setEditingId(vente.id)}
