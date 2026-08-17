@@ -1,9 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function FinalCta() {
+  const ref = useScrollReveal<HTMLDivElement>();
+
   return (
     <section className="bg-gradient-to-b from-hero-start to-hero-deep py-20 text-center sm:py-[100px]">
-      <div className="mx-auto max-w-[1160px] px-5 sm:px-7">
+      <div
+        ref={ref}
+        className="reveal mx-auto max-w-[1160px] px-5 sm:px-7"
+      >
         <h2 className="font-display mx-auto mb-4 max-w-[22ch] text-[28px] font-bold text-card sm:text-[36px] lg:text-[42px]">
           Commencez à tenir vos comptes correctement, aujourd&apos;hui.
         </h2>

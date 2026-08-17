@@ -1,11 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import PhoneMockup from "./PhoneMockup";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function Hero() {
+  const textRef = useScrollReveal<HTMLDivElement>();
+  const phoneRef = useScrollReveal<HTMLDivElement>();
+
   return (
     <section className="pt-12 pb-10 sm:pt-[76px]">
       <div className="mx-auto grid max-w-[1160px] items-center gap-10 px-5 sm:px-7 md:grid-cols-[1fr_2px_1fr] md:gap-14">
-        <div>
+        <div ref={textRef} className="reveal">
           <div className="mb-5 inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.08em] text-accent-dark uppercase">
             <span className="h-[7px] w-[7px] rounded-full bg-accent" />
             Pensé pour les commerçants sénégalais
@@ -42,7 +48,7 @@ export default function Hero() {
           className="hidden w-0.5 self-stretch bg-[radial-gradient(circle,var(--color-ink)_2.4px,transparent_3px)] bg-repeat-y opacity-[0.28] [background-position:center_top] [background-size:100%_24px] md:block"
         />
 
-        <div className="relative">
+        <div ref={phoneRef} className="reveal relative" style={{ transitionDelay: "0.15s" }}>
           <span className="font-hand absolute -top-4 left-2 -rotate-6 text-xl font-bold text-accent-dark">
             en 2 minutes ✎
           </span>

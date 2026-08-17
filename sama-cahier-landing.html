@@ -333,6 +333,11 @@
   .feature-card h3 { font-size: 16.5px; font-weight: 700; }
   .feature-card p { font-size: 13.5px; color: var(--ink-2); }
 
+  .feature-card:nth-child(4n+1) { transition-delay: 0s; }
+  .feature-card:nth-child(4n+2) { transition-delay: 0.08s; }
+  .feature-card:nth-child(4n+3) { transition-delay: 0.16s; }
+  .feature-card:nth-child(4n+4) { transition-delay: 0.24s; }
+
   /* ---------- poches callout ---------- */
   .poches {
     padding: 20px 0 90px;
@@ -372,13 +377,55 @@
   .final-cta p { color: rgba(255,249,239,0.75); margin-bottom: 34px; }
   .final-cta .btn-primary { margin: 0 auto; }
 
-  footer {
-    padding: 36px 0;
+  footer { padding: 64px 0 32px; }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--line);
+  }
+  .footer-brand p {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--ink-2);
+    max-width: 32ch;
+    line-height: 1.6;
+  }
+  .footer-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-1);
+    margin-bottom: 16px;
+  }
+  .footer-col { display: flex; flex-direction: column; gap: 11px; }
+  .footer-col a, .footer-muted {
+    font-size: 14.5px;
+    color: var(--ink-2);
+  }
+  .footer-col a { transition: color 0.15s ease; }
+  .footer-col a:hover { color: var(--accent-dark); }
+  .footer-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13.5px;
+    padding-top: 24px;
+    font-size: 13px;
     color: var(--ink-2);
+  }
+
+  /* ---------- scroll reveal ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.7s cubic-bezier(.22,.61,.36,1), transform 0.7s cubic-bezier(.22,.61,.36,1);
+    will-change: opacity, transform;
+  }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { transition: none; opacity: 1; transform: none; }
   }
 
   @media (max-width: 880px) {
@@ -388,12 +435,15 @@
     .feature-grid { grid-template-columns: repeat(2, 1fr); }
     .poches-inner { grid-template-columns: 1fr; padding: 32px; }
     .phone { width: 250px; }
-    .phone-screen { height: 480px; }
+    .phone-screen { height: 490px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
   }
   @media (max-width: 520px) {
     .feature-grid { grid-template-columns: 1fr; }
     .wrap { padding: 0 20px; }
-    footer .wrap { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+    .footer-bottom { flex-direction: column; gap: 10px; align-items: flex-start; }
   }
 </style>
 </head>
@@ -408,7 +458,7 @@
 
 <section class="hero">
   <div class="wrap hero-grid">
-    <div>
+    <div class="reveal">
       <div class="eyebrow">Pensé pour les commerçants sénégalais</div>
       <h1>Le cahier de votre commerce ne se <span class="accent-word">perd</span> plus.</h1>
       <p class="lead">Ventes, dépenses, stock, dettes et caisse — tout ce que vous notiez à la main, maintenant fiable et toujours avec vous.</p>
@@ -418,7 +468,7 @@
       </div>
     </div>
     <div class="perf-v"></div>
-    <div style="position:relative;">
+    <div class="reveal" style="position:relative; transition-delay:0.15s;">
       <span class="hand-note" style="top:-18px; left:8px;">en 2 minutes ✎</span>
       <div class="phone">
         <div class="phone-screen">
@@ -459,65 +509,65 @@
 
 <section class="problem">
   <div class="wrap">
-    <h2>Un cahier en papier, ça oublie autant que ça garde.</h2>
+    <h2 class="reveal">Un cahier en papier, ça oublie autant que ça garde.</h2>
     <div class="problem-list">
-      <div class="problem-item">
+      <div class="problem-item reveal" style="transition-delay:0.05s;">
         <p class="strike">Un client qui doit de l'argent, et vous ne retrouvez plus la page.</p>
       </div>
-      <div class="problem-item">
+      <div class="problem-item reveal" style="transition-delay:0.15s;">
         <p class="strike">L'argent du commerce mélangé avec l'argent de la maison.</p>
       </div>
-      <div class="problem-item">
+      <div class="problem-item reveal" style="transition-delay:0.25s;">
         <p class="strike">Un stock qui part sans qu'on sache pourquoi la caisse est vide.</p>
       </div>
     </div>
-    <div class="pivot">Sama Cahier tient les comptes à votre place.</div>
+    <div class="pivot reveal" style="transition-delay:0.3s;">Sama Cahier tient les comptes à votre place.</div>
   </div>
 </section>
 
 <section class="features" id="fonctionnalites">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="eyebrow">Ce que vous pouvez faire</div>
       <h2>Tout ce qu'un commerce doit suivre, au même endroit.</h2>
     </div>
     <div class="feature-grid">
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">01</span>
         <h3>Ventes</h3>
         <p>Chaque vente enregistrée — payée, à crédit ou impayée.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">02</span>
         <h3>Dépenses</h3>
         <p>Ce qui sort, et d'où : caisse du commerce ou poche personnelle.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">03</span>
         <h3>Stock</h3>
         <p>Ce qu'il vous reste, avant qu'il ne soit trop tard.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">04</span>
         <h3>Créances</h3>
         <p>Qui vous doit quoi, et depuis quand.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">05</span>
         <h3>Caisse</h3>
         <p>Deux poches séparées, jamais mélangées.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">06</span>
         <h3>Tableaux de bord</h3>
         <p>L'état réel de votre commerce, en un coup d'œil.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <span class="num">07</span>
         <h3>Documents</h3>
         <p>Reçus et rapports prêts à imprimer ou partager.</p>
       </div>
-      <div class="feature-card" style="background: var(--surface-secondary); justify-content:center;">
+      <div class="feature-card reveal" style="background: var(--surface-secondary); justify-content:center;">
         <p style="font-size:14.5px; color:var(--ink-1); font-weight:600;">Pensé pour être utilisé sans formation comptable.</p>
       </div>
     </div>
@@ -527,12 +577,12 @@
 <section class="poches">
   <div class="wrap">
     <div class="poches-inner">
-      <div>
+      <div class="reveal">
         <div class="eyebrow">Le vrai problème, réglé</div>
         <h2>Votre argent perso n'est plus mélangé au commerce.</h2>
         <p>Ma Caisse pour le commerce, Ma Poche pour le personnel. Chaque vente, chaque dépense va dans la bonne poche — vous savez enfin ce qui vous appartient.</p>
       </div>
-      <div class="poche-cards">
+      <div class="poche-cards reveal" style="transition-delay:0.15s;">
         <div class="poche-card a">
           <div class="t">Ma Caisse</div>
           <div class="m">50 000 F</div>
@@ -547,7 +597,7 @@
 </section>
 
 <section class="final-cta">
-  <div class="wrap">
+  <div class="wrap reveal">
     <h2>Commencez à tenir vos comptes correctement, aujourd'hui.</h2>
     <p>Gratuit pour démarrer. Aucune carte bancaire nécessaire.</p>
     <a href="#" class="btn-primary">Créer mon compte →</a>
@@ -555,11 +605,46 @@
 </section>
 
 <footer>
-  <div class="wrap" style="display:flex; justify-content:space-between; width:100%;">
-    <span class="wordmark" style="font-size:16px;">Sama<span class="dot">·</span>Cahier</span>
-    <span>Fait pour les commerçants du Sénégal.</span>
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <div class="wordmark">Sama<span class="dot">·</span>Cahier</div>
+      <p>Le cahier de votre commerce, toujours avec vous. Ventes, dépenses, stock, dettes et caisse — tout au même endroit.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-title">Produit</div>
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#">Créer un compte</a>
+      <a href="#">Se connecter</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-title">Contact</div>
+      <a href="mailto:contact@samacahier.sn">contact@samacahier.sn</a>
+      <span class="footer-muted">Dakar, Sénégal</span>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>© 2026 Sama Cahier. Tous droits réservés.</span>
+    <span class="hand" style="color:var(--accent-dark); font-size:19px;">Tenu avec soin ✎</span>
   </div>
 </footer>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var revealEls = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+      revealEls.forEach(function (el) { io.observe(el); });
+    } else {
+      revealEls.forEach(function (el) { el.classList.add('in-view'); });
+    }
+  });
+</script>
 </body>
 </html>

@@ -1,3 +1,7 @@
+"use client";
+
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+
 const FEATURES = [
   {
     num: "01",
@@ -36,11 +40,37 @@ const FEATURES = [
   },
 ];
 
+// Le décalage échelonné (transition-delay) vient du sélecteur CSS
+// .feature-card:nth-child(4n+…) dans globals.css, aligné sur la grille
+// desktop à 4 colonnes — pas d'inline style ici.
+function FeatureCard({
+  num,
+  titre,
+  texte,
+}: {
+  num: string;
+  titre: string;
+  texte: string;
+}) {
+  const ref = useScrollReveal<HTMLDivElement>();
+
+  return (
+    <div ref={ref} className="feature-card reveal flex min-h-[168px] flex-col gap-2.5 bg-card p-6">
+      <span className="font-jetbrains text-xs font-bold text-accent-dark">{num}</span>
+      <h3 className="text-[16.5px] font-bold">{titre}</h3>
+      <p className="text-[13.5px] text-ink-muted">{texte}</p>
+    </div>
+  );
+}
+
 export default function FeaturesGrid() {
+  const headRef = useScrollReveal<HTMLDivElement>();
+  const specialCardRef = useScrollReveal<HTMLDivElement>();
+
   return (
     <section id="fonctionnalites" className="py-16 sm:py-[88px]">
       <div className="mx-auto max-w-[1160px] px-5 sm:px-7">
-        <div className="mb-12 max-w-[56ch]">
+        <div ref={headRef} className="reveal mb-12 max-w-[56ch]">
           <div className="mb-3 text-[13px] font-semibold tracking-[0.08em] text-accent-dark uppercase">
             Ce que vous pouvez faire
           </div>
@@ -51,15 +81,17 @@ export default function FeaturesGrid() {
 
         <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[20px] border border-ink/12 bg-ink/12 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
-            <div key={feature.num} className="flex min-h-[168px] flex-col gap-2.5 bg-card p-6">
-              <span className="font-jetbrains text-xs font-bold text-accent-dark">
-                {feature.num}
-              </span>
-              <h3 className="text-[16.5px] font-bold">{feature.titre}</h3>
-              <p className="text-[13.5px] text-ink-muted">{feature.texte}</p>
-            </div>
+            <FeatureCard
+              key={feature.num}
+              num={feature.num}
+              titre={feature.titre}
+              texte={feature.texte}
+            />
           ))}
-          <div className="flex min-h-[168px] flex-col justify-center gap-2.5 bg-secondary p-6">
+          <div
+            ref={specialCardRef}
+            className="feature-card reveal flex min-h-[168px] flex-col justify-center gap-2.5 bg-secondary p-6"
+          >
             <p className="text-[14.5px] font-semibold text-ink">
               Pensé pour être utilisé sans formation comptable.
             </p>

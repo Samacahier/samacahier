@@ -3,7 +3,7 @@
 export default function PhoneMockup() {
   return (
     <div className="mx-auto w-[250px] rounded-[34px] bg-[#17110B] p-3 shadow-[0_30px_60px_-20px_rgba(45,38,22,0.45)] sm:w-[290px]">
-      <div className="flex h-[480px] flex-col overflow-hidden rounded-[24px] bg-page sm:h-[490px]">
+      <div className="flex h-[490px] flex-col overflow-hidden rounded-[24px] bg-page">
         <div className="flex justify-between px-5 pt-3.5 pb-1 text-xs font-semibold">
           <span>12:41</span>
           <span>●●●●</span>
