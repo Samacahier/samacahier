@@ -8,7 +8,7 @@ type StockInsert = Database["public"]["Tables"]["stocks"]["Insert"];
 
 export type StockFormInput = Omit<
   StockInsert,
-  "id" | "commercant_id" | "created_at" | "updated_at"
+  "id" | "commercant_id" | "created_at" | "updated_at" | "code_produit"
 >;
 
 export async function listStocks(commercantId: string): Promise<Stock[]> {

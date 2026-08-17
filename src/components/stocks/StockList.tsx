@@ -3,16 +3,20 @@
 import { useState } from "react";
 import StockForm from "./StockForm";
 import { deleteStock } from "@/lib/stocks/queries";
-import type { Stock } from "@/types/database";
+import type { Fournisseur, Stock } from "@/types/database";
 
 type StockListProps = {
   stocks: Stock[];
+  fournisseurs: Fournisseur[];
 };
 
-export default function StockList({ stocks }: StockListProps) {
+export default function StockList({ stocks, fournisseurs }: StockListProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const nomFournisseur = (id: string | null) =>
+    fournisseurs.find((fournisseur) => fournisseur.id === id)?.nom ?? "—";
 
   async function handleDelete(id: string) {
     if (!window.confirm("Supprimer cet article ?")) return;
@@ -25,34 +29,38 @@ export default function StockList({ stocks }: StockListProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Stocks</h1>
+        <h1 className="text-2xl font-semibold">Produits</h1>
         <button
           type="button"
           onClick={() => setShowCreateForm((value) => !value)}
           className="rounded bg-black px-3 py-2 text-white"
         >
-          {showCreateForm ? "Fermer" : "Nouvel article"}
+          {showCreateForm ? "Fermer" : "Nouveau produit"}
         </button>
       </div>
 
       {showCreateForm && (
         <StockForm
+          fournisseurs={fournisseurs}
           onSuccess={() => setShowCreateForm(false)}
           onCancel={() => setShowCreateForm(false)}
         />
       )}
 
       {stocks.length === 0 ? (
-        <p className="text-sm text-zinc-600">Aucun article en stock.</p>
+        <p className="text-sm text-zinc-600">Aucun produit enregistré.</p>
       ) : (
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b">
-              <th className="py-2">Article</th>
+              <th className="py-2">ID</th>
+              <th className="py-2">Produit</th>
+              <th className="py-2">Catégorie</th>
               <th className="py-2">Quantité</th>
               <th className="py-2">Unité</th>
-              <th className="py-2">Prix unit.</th>
-              <th className="py-2">Seuil alerte</th>
+              <th className="py-2">Prix achat</th>
+              <th className="py-2">Prix vente</th>
+              <th className="py-2">Fournisseur</th>
               <th className="py-2" />
             </tr>
           </thead>
@@ -60,9 +68,10 @@ export default function StockList({ stocks }: StockListProps) {
             {stocks.map((stock) =>
               editingId === stock.id ? (
                 <tr key={stock.id}>
-                  <td colSpan={6} className="py-2">
+                  <td colSpan={9} className="py-2">
                     <StockForm
                       stock={stock}
+                      fournisseurs={fournisseurs}
                       onSuccess={() => setEditingId(null)}
                       onCancel={() => setEditingId(null)}
                     />
@@ -70,7 +79,9 @@ export default function StockList({ stocks }: StockListProps) {
                 </tr>
               ) : (
                 <tr key={stock.id} className="border-b">
+                  <td className="py-2 text-zinc-500">{stock.code_produit}</td>
                   <td className="py-2">{stock.nom_article}</td>
+                  <td className="py-2">{stock.categorie ?? "—"}</td>
                   <td
                     className={`py-2 ${
                       stock.quantite <= stock.seuil_alerte ? "text-red-600" : ""
@@ -80,9 +91,12 @@ export default function StockList({ stocks }: StockListProps) {
                   </td>
                   <td className="py-2">{stock.unite}</td>
                   <td className="py-2">
-                    {stock.prix_unitaire?.toLocaleString("fr-FR") ?? "—"}
+                    {stock.prix_achat?.toLocaleString("fr-FR") ?? "—"}
                   </td>
-                  <td className="py-2">{stock.seuil_alerte}</td>
+                  <td className="py-2">
+                    {stock.prix_vente?.toLocaleString("fr-FR") ?? "—"}
+                  </td>
+                  <td className="py-2">{nomFournisseur(stock.fournisseur_id)}</td>
                   <td className="py-2">
                     <div className="flex gap-2">
                       <button

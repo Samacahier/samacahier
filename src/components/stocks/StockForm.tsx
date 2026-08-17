@@ -1,25 +1,42 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import {
-  createStock,
-  updateStock,
-  type StockFormInput,
-} from "@/lib/stocks/queries";
-import type { Stock } from "@/types/database";
+import { createStock, updateStock, type StockFormInput } from "@/lib/stocks/queries";
+import type { Fournisseur, Stock } from "@/types/database";
 
 type StockFormProps = {
   stock?: Stock;
+  fournisseurs: Fournisseur[];
   onSuccess: () => void;
   onCancel: () => void;
 };
 
-export default function StockForm({ stock, onSuccess, onCancel }: StockFormProps) {
+const CATEGORIES = [
+  "Alimentaire",
+  "Boissons",
+  "Hygiène & Cosmétique",
+  "Habillement",
+  "Électronique",
+  "Ménager",
+  "Autre",
+];
+
+const UNITES = ["unité", "kg", "g", "litre", "sachet", "carton", "autre"];
+
+export default function StockForm({
+  stock,
+  fournisseurs,
+  onSuccess,
+  onCancel,
+}: StockFormProps) {
   const [nomArticle, setNomArticle] = useState(stock?.nom_article ?? "");
-  const [quantite, setQuantite] = useState(stock?.quantite ?? 0);
+  const [categorie, setCategorie] = useState(stock?.categorie ?? "");
   const [unite, setUnite] = useState(stock?.unite ?? "unité");
-  const [prixUnitaire, setPrixUnitaire] = useState(stock?.prix_unitaire ?? 0);
+  const [prixAchat, setPrixAchat] = useState(stock?.prix_achat ?? 0);
+  const [prixVente, setPrixVente] = useState(stock?.prix_vente ?? 0);
+  const [quantite, setQuantite] = useState(stock?.quantite ?? 0);
   const [seuilAlerte, setSeuilAlerte] = useState(stock?.seuil_alerte ?? 0);
+  const [fournisseurId, setFournisseurId] = useState(stock?.fournisseur_id ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,10 +47,13 @@ export default function StockForm({ stock, onSuccess, onCancel }: StockFormProps
 
     const input: StockFormInput = {
       nom_article: nomArticle,
-      quantite,
+      categorie: categorie || null,
       unite,
-      prix_unitaire: prixUnitaire || null,
+      prix_achat: prixAchat || null,
+      prix_vente: prixVente || null,
+      quantite,
       seuil_alerte: seuilAlerte,
+      fournisseur_id: fournisseurId || null,
     };
 
     const result = stock
@@ -53,7 +73,17 @@ export default function StockForm({ stock, onSuccess, onCancel }: StockFormProps
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
       <label className="flex flex-col gap-1 text-sm">
-        Article
+        ID produit
+        <input
+          type="text"
+          disabled
+          value={stock?.code_produit ?? "Généré automatiquement à la création"}
+          className="rounded border bg-zinc-100 px-3 py-2 text-zinc-500"
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Nom du produit
         <input
           type="text"
           required
@@ -65,7 +95,66 @@ export default function StockForm({ stock, onSuccess, onCancel }: StockFormProps
 
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm">
-          Quantité
+          Catégorie
+          <select
+            value={categorie}
+            onChange={(event) => setCategorie(event.target.value)}
+            className="rounded border px-3 py-2"
+          >
+            <option value="">—</option>
+            {CATEGORIES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Unité
+          <select
+            value={unite}
+            onChange={(event) => setUnite(event.target.value)}
+            className="rounded border px-3 py-2"
+          >
+            {UNITES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Prix d&apos;achat (FCFA)
+          <input
+            type="number"
+            min={0}
+            step="any"
+            value={prixAchat}
+            onChange={(event) => setPrixAchat(Number(event.target.value))}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Prix de vente (FCFA)
+          <input
+            type="number"
+            min={0}
+            step="any"
+            value={prixVente}
+            onChange={(event) => setPrixVente(Number(event.target.value))}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+      </div>
+
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Stock initial
           <input
             type="number"
             min={0}
@@ -78,32 +167,7 @@ export default function StockForm({ stock, onSuccess, onCancel }: StockFormProps
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm">
-          Unité
-          <input
-            type="text"
-            required
-            value={unite}
-            onChange={(event) => setUnite(event.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-      </div>
-
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
-          Prix unitaire (FCFA)
-          <input
-            type="number"
-            min={0}
-            step="any"
-            value={prixUnitaire}
-            onChange={(event) => setPrixUnitaire(Number(event.target.value))}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-
-        <label className="flex flex-1 flex-col gap-1 text-sm">
-          Seuil d&apos;alerte
+          Stock minimum
           <input
             type="number"
             min={0}
@@ -115,6 +179,22 @@ export default function StockForm({ stock, onSuccess, onCancel }: StockFormProps
           />
         </label>
       </div>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Fournisseur
+        <select
+          value={fournisseurId}
+          onChange={(event) => setFournisseurId(event.target.value)}
+          className="rounded border px-3 py-2"
+        >
+          <option value="">—</option>
+          {fournisseurs.map((fournisseur) => (
+            <option key={fournisseur.id} value={fournisseur.id}>
+              {fournisseur.nom}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

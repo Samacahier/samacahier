@@ -3,9 +3,11 @@ import Link from "next/link";
 const LIENS = [
   { href: "/ventes", label: "Ventes" },
   { href: "/depenses", label: "Dépenses" },
-  { href: "/stocks", label: "Stocks" },
+  { href: "/stocks", label: "Produits" },
   { href: "/creances", label: "Créances" },
   { href: "/caisse", label: "Caisse" },
+  { href: "/clients", label: "Clients" },
+  { href: "/fournisseurs", label: "Fournisseurs" },
   { href: "/rapports", label: "Rapports" },
 ] as const;
 

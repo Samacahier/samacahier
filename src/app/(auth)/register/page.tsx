@@ -1,44 +1,95 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import RegisterProgress from "@/components/auth/RegisterProgress";
+import RegisterAccountStep from "@/components/auth/RegisterAccountStep";
+import RegisterCommerceStep from "@/components/auth/RegisterCommerceStep";
+import {
+  INITIAL_REGISTER_STATE,
+  type RegisterFormState,
+} from "@/components/auth/registerFormState";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [nom, setNom] = useState("");
-  const [nomCommerce, setNomCommerce] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [step, setStep] = useState<1 | 2>(1);
+  const [values, setValues] = useState<RegisterFormState>(INITIAL_REGISTER_STATE);
+  const [logo, setLogo] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function handleChange(field: keyof RegisterFormState, value: string) {
+    setValues((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleNext() {
+    if (values.password !== values.confirmation) {
+      setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
+    setError(null);
+    setStep(2);
+  }
+
+  async function uploadLogo(supabase: ReturnType<typeof createClient>, userId: string) {
+    if (!logo) return;
+
+    const chemin = `${userId}/${Date.now()}-${logo.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from("logos")
+      .upload(chemin, logo);
+
+    if (uploadError) return;
+
+    const { data } = supabase.storage.from("logos").getPublicUrl(chemin);
+    await supabase.from("commercants").update({ logo_url: data.publicUrl }).eq(
+      "id",
+      userId,
+    );
+  }
+
+  async function handleSubmit() {
     setError(null);
     setInfo(null);
     setLoading(true);
 
     const supabase = createClient();
     const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
+      email: values.email,
+      password: values.password,
       options: {
-        // Lu par le trigger handle_new_user() pour créer le profil et la
-        // ligne commercants (rôle commercant par défaut, cf. supabase/migrations).
-        data: { nom, nom_commerce: nomCommerce, role: "commercant" },
+        // Lu par le trigger handle_new_user() pour créer profiles + commercants
+        // avec tous les champs de l'étape 2 (cf. supabase/migrations).
+        data: {
+          role: "commercant",
+          nom: values.nom,
+          telephone: values.telephone,
+          nom_commerce: values.nomCommerce,
+          activite: values.activite,
+          ninea: values.ninea,
+          rccm: values.rccm,
+          telephone_pro: values.telephonePro,
+          email_pro: values.emailPro,
+          adresse: values.adresse,
+          ville_region: values.villeRegion,
+          devise: values.devise,
+        },
       },
     });
 
-    if (signUpError) {
-      setError(signUpError.message);
+    if (signUpError || !data.user) {
+      setError(signUpError?.message ?? "Inscription impossible.");
       setLoading(false);
       return;
     }
 
+    // L'upload du logo nécessite une session active (RLS du bucket "logos") :
+    // seulement possible si l'inscription est immédiatement confirmée.
     if (data.session) {
+      await uploadLogo(supabase, data.user.id);
       router.push("/dashboard");
       router.refresh();
       return;
@@ -49,66 +100,31 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
-      <h1 className="text-2xl font-semibold">Création de compte</h1>
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4 py-8">
+      <h1 className="text-2xl font-semibold">Créer mon espace</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Nom
-          <input
-            type="text"
-            required
-            value={nom}
-            onChange={(event) => setNom(event.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
+      <RegisterProgress step={step} />
 
-        <label className="flex flex-col gap-1 text-sm">
-          Nom du commerce
-          <input
-            type="text"
-            required
-            value={nomCommerce}
-            onChange={(event) => setNomCommerce(event.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
+      {step === 1 ? (
+        <RegisterAccountStep
+          values={values}
+          onChange={handleChange}
+          error={error}
+          onNext={handleNext}
+        />
+      ) : (
+        <RegisterCommerceStep
+          values={values}
+          onChange={handleChange}
+          onLogoChange={setLogo}
+          error={error}
+          loading={loading}
+          onBack={() => setStep(1)}
+          onSubmit={handleSubmit}
+        />
+      )}
 
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-sm">
-          Mot de passe
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {info && <p className="text-sm text-green-700">{info}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Création..." : "Créer mon compte"}
-        </button>
-      </form>
+      {info && <p className="text-sm text-green-700">{info}</p>}
 
       <p className="text-sm">
         Déjà un compte ?{" "}

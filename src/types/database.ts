@@ -1,10 +1,15 @@
-// Types générés à la main à partir des migrations SQL (supabase/migrations/).
-// À régénérer avec `supabase gen types typescript` une fois le projet connecté.
+// Types générés à la main à partir du schéma réel (information_schema +
+// contraintes CHECK, vérifiées via `supabase db query --linked`).
+// À régénérer avec `supabase gen types typescript` si le CLI est utilisable
+// avec les droits nécessaires.
 
 type Role = "commercant" | "admin";
-type ModePaiement = "especes" | "mobile_money" | "virement" | "autre";
-type StatutCreance = "en_cours" | "soldee" | "en_retard";
+type ModePaiementVente = "especes" | "mobile_money" | "virement" | "autre";
+type StatutVente = "paye" | "credit" | "impaye";
+type SourceDepense = "caisse" | "poche";
 type TypeMouvement = "entree" | "sortie";
+type TypePoche = "caisse" | "poche";
+type StatutCreance = "en_cours" | "soldee" | "en_retard";
 
 export type Database = {
   public: {
@@ -36,6 +41,16 @@ export type Database = {
           adresse: string | null;
           telephone: string | null;
           created_at: string;
+          logo_url: string | null;
+          activite: string | null;
+          ninea: string | null;
+          rccm: string | null;
+          telephone_pro: string | null;
+          email_pro: string | null;
+          ville_region: string | null;
+          devise: string;
+          solde_initial_caisse: number;
+          solde_initial_poche: number;
         };
         Insert: {
           id: string;
@@ -43,6 +58,16 @@ export type Database = {
           adresse?: string | null;
           telephone?: string | null;
           created_at?: string;
+          logo_url?: string | null;
+          activite?: string | null;
+          ninea?: string | null;
+          rccm?: string | null;
+          telephone_pro?: string | null;
+          email_pro?: string | null;
+          ville_region?: string | null;
+          devise?: string;
+          solde_initial_caisse?: number;
+          solde_initial_poche?: number;
         };
         Update: Partial<Database["public"]["Tables"]["commercants"]["Insert"]>;
         Relationships: [];
@@ -55,9 +80,14 @@ export type Database = {
           quantite: number;
           prix_unitaire: number;
           montant_total: number;
-          mode_paiement: ModePaiement;
+          mode_paiement: ModePaiementVente;
           date_vente: string;
           created_at: string;
+          produit_id: string | null;
+          client_id: string | null;
+          remise: number;
+          statut: StatutVente;
+          montant_encaisse: number | null;
         };
         Insert: {
           id?: string;
@@ -66,9 +96,14 @@ export type Database = {
           quantite?: number;
           prix_unitaire: number;
           montant_total: number;
-          mode_paiement?: ModePaiement;
+          mode_paiement?: ModePaiementVente;
           date_vente?: string;
           created_at?: string;
+          produit_id?: string | null;
+          client_id?: string | null;
+          remise?: number;
+          statut?: StatutVente;
+          montant_encaisse?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["ventes"]["Insert"]>;
         Relationships: [];
@@ -82,6 +117,9 @@ export type Database = {
           montant: number;
           date_depense: string;
           created_at: string;
+          source: SourceDepense;
+          mode_paiement: string | null;
+          fournisseur_id: string | null;
         };
         Insert: {
           id?: string;
@@ -91,6 +129,9 @@ export type Database = {
           montant: number;
           date_depense?: string;
           created_at?: string;
+          source?: SourceDepense;
+          mode_paiement?: string | null;
+          fournisseur_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["depenses"]["Insert"]>;
         Relationships: [];
@@ -102,10 +143,14 @@ export type Database = {
           nom_article: string;
           quantite: number;
           unite: string;
-          prix_unitaire: number | null;
           seuil_alerte: number;
           created_at: string;
           updated_at: string;
+          categorie: string | null;
+          prix_achat: number | null;
+          prix_vente: number | null;
+          fournisseur_id: string | null;
+          code_produit: string;
         };
         Insert: {
           id?: string;
@@ -113,10 +158,15 @@ export type Database = {
           nom_article: string;
           quantite?: number;
           unite?: string;
-          prix_unitaire?: number | null;
           seuil_alerte?: number;
           created_at?: string;
           updated_at?: string;
+          categorie?: string | null;
+          prix_achat?: number | null;
+          prix_vente?: number | null;
+          fournisseur_id?: string | null;
+          // Généré par le trigger stocks_set_code_produit si omis.
+          code_produit?: string;
         };
         Update: Partial<Database["public"]["Tables"]["stocks"]["Insert"]>;
         Relationships: [];
@@ -132,6 +182,7 @@ export type Database = {
           statut: StatutCreance;
           date_echeance: string | null;
           created_at: string;
+          client_id: string | null;
         };
         Insert: {
           id?: string;
@@ -143,6 +194,7 @@ export type Database = {
           statut?: StatutCreance;
           date_echeance?: string | null;
           created_at?: string;
+          client_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["creances"]["Insert"]>;
         Relationships: [];
@@ -156,6 +208,7 @@ export type Database = {
           motif: string | null;
           date_mouvement: string;
           created_at: string;
+          type_poche: TypePoche;
         };
         Insert: {
           id?: string;
@@ -165,8 +218,45 @@ export type Database = {
           motif?: string | null;
           date_mouvement?: string;
           created_at?: string;
+          type_poche?: TypePoche;
         };
         Update: Partial<Database["public"]["Tables"]["caisse"]["Insert"]>;
+        Relationships: [];
+      };
+      clients: {
+        Row: {
+          id: string;
+          commercant_id: string;
+          nom: string;
+          telephone: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          commercant_id: string;
+          nom: string;
+          telephone?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
+        Relationships: [];
+      };
+      fournisseurs: {
+        Row: {
+          id: string;
+          commercant_id: string;
+          nom: string;
+          contact: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          commercant_id: string;
+          nom: string;
+          contact?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["fournisseurs"]["Insert"]>;
         Relationships: [];
       };
     };
@@ -184,3 +274,5 @@ export type Depense = Database["public"]["Tables"]["depenses"]["Row"];
 export type Stock = Database["public"]["Tables"]["stocks"]["Row"];
 export type Creance = Database["public"]["Tables"]["creances"]["Row"];
 export type Caisse = Database["public"]["Tables"]["caisse"]["Row"];
+export type Client = Database["public"]["Tables"]["clients"]["Row"];
+export type Fournisseur = Database["public"]["Tables"]["fournisseurs"]["Row"];
