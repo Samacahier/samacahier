@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { listVentes } from "@/lib/ventes/queries";
+import { listStocks } from "@/lib/stocks/queries";
+import { listClients } from "@/lib/clients/queries";
 import VenteList from "@/components/ventes/VenteList";
 
 export default async function VentesPage() {
@@ -8,11 +10,13 @@ export default async function VentesPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const ventes = user ? await listVentes(user.id) : [];
+  const [ventes, produits, clients] = user
+    ? await Promise.all([listVentes(user.id), listStocks(user.id), listClients(user.id)])
+    : [[], [], []];
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <VenteList ventes={ventes} />
+      <VenteList ventes={ventes} produits={produits} clients={clients} />
     </main>
   );
 }

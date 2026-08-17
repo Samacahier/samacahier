@@ -183,6 +183,7 @@ export type Database = {
           date_echeance: string | null;
           created_at: string;
           client_id: string | null;
+          vente_id: string | null;
         };
         Insert: {
           id?: string;
@@ -195,6 +196,7 @@ export type Database = {
           date_echeance?: string | null;
           created_at?: string;
           client_id?: string | null;
+          vente_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["creances"]["Insert"]>;
         Relationships: [];
@@ -209,6 +211,8 @@ export type Database = {
           date_mouvement: string;
           created_at: string;
           type_poche: TypePoche;
+          vente_id: string | null;
+          depense_id: string | null;
         };
         Insert: {
           id?: string;
@@ -219,6 +223,8 @@ export type Database = {
           date_mouvement?: string;
           created_at?: string;
           type_poche?: TypePoche;
+          vente_id?: string | null;
+          depense_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["caisse"]["Insert"]>;
         Relationships: [];

@@ -7,7 +7,6 @@ const COMMERCANT_PATHS = [
   "/ventes",
   "/depenses",
   "/stocks",
-  "/creances",
   "/caisse",
   "/rapports",
   "/clients",

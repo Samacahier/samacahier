@@ -1,18 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 import { listCaisse } from "@/lib/caisse/queries";
-import CaisseList from "@/components/caisse/CaisseList";
+import { getCommercant } from "@/lib/commercants/queries";
+import { listCreances } from "@/lib/creances/queries";
+import TresorerieTabs from "@/components/tresorerie/TresorerieTabs";
 
-export default async function CaissePage() {
+export default async function TresoreriePage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const mouvements = user ? await listCaisse(user.id) : [];
+  const [commercant, mouvements, creances] = user
+    ? await Promise.all([
+        getCommercant(user.id),
+        listCaisse(user.id),
+        listCreances(user.id),
+      ])
+    : [null, [], []];
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <CaisseList mouvements={mouvements} />
+      <TresorerieTabs commercant={commercant} mouvements={mouvements} creances={creances} />
     </main>
   );
 }

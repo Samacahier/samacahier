@@ -6,18 +6,41 @@ import {
   updateDepense,
   type DepenseFormInput,
 } from "@/lib/depenses/queries";
-import type { Depense } from "@/types/database";
+import type { Depense, Fournisseur } from "@/types/database";
 
 type DepenseFormProps = {
   depense?: Depense;
+  fournisseurs: Fournisseur[];
   onSuccess: () => void;
   onCancel: () => void;
 };
 
-export default function DepenseForm({ depense, onSuccess, onCancel }: DepenseFormProps) {
+const SOURCES: { value: NonNullable<DepenseFormInput["source"]>; label: string }[] = [
+  { value: "caisse", label: "Ma Caisse" },
+  { value: "poche", label: "Ma Poche" },
+];
+
+const MODES_PAIEMENT = [
+  { value: "especes", label: "Espèces" },
+  { value: "mobile_money", label: "Mobile money" },
+  { value: "virement", label: "Virement" },
+  { value: "autre", label: "Autre" },
+];
+
+export default function DepenseForm({
+  depense,
+  fournisseurs,
+  onSuccess,
+  onCancel,
+}: DepenseFormProps) {
   const [libelle, setLibelle] = useState(depense?.libelle ?? "");
   const [categorie, setCategorie] = useState(depense?.categorie ?? "");
   const [montant, setMontant] = useState(depense?.montant ?? 0);
+  const [source, setSource] = useState<NonNullable<DepenseFormInput["source"]>>(
+    depense?.source ?? "caisse",
+  );
+  const [modePaiement, setModePaiement] = useState(depense?.mode_paiement ?? "especes");
+  const [fournisseurId, setFournisseurId] = useState(depense?.fournisseur_id ?? "");
   const [dateDepense, setDateDepense] = useState(
     depense?.date_depense ?? new Date().toISOString().slice(0, 10),
   );
@@ -33,6 +56,9 @@ export default function DepenseForm({ depense, onSuccess, onCancel }: DepenseFor
       libelle,
       categorie: categorie || null,
       montant,
+      source,
+      mode_paiement: modePaiement || null,
+      fournisseur_id: fournisseurId || null,
       date_depense: dateDepense,
     };
 
@@ -53,7 +79,7 @@ export default function DepenseForm({ depense, onSuccess, onCancel }: DepenseFor
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
       <label className="flex flex-col gap-1 text-sm">
-        Libellé
+        Description
         <input
           type="text"
           required
@@ -65,17 +91,7 @@ export default function DepenseForm({ depense, onSuccess, onCancel }: DepenseFor
 
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm">
-          Catégorie
-          <input
-            type="text"
-            value={categorie}
-            onChange={(event) => setCategorie(event.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-
-        <label className="flex flex-1 flex-col gap-1 text-sm">
-          Montant (FCFA)
+          Montant
           <input
             type="number"
             min={0}
@@ -85,6 +101,67 @@ export default function DepenseForm({ depense, onSuccess, onCancel }: DepenseFor
             onChange={(event) => setMontant(Number(event.target.value))}
             className="rounded border px-3 py-2"
           />
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Catégorie
+          <input
+            type="text"
+            value={categorie}
+            onChange={(event) => setCategorie(event.target.value)}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+      </div>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Source
+        <div className="flex gap-2">
+          {SOURCES.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setSource(option.value)}
+              className={`flex-1 rounded border px-3 py-2 ${
+                source === option.value ? "border-black bg-black text-white" : ""
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </label>
+
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Mode de paiement
+          <select
+            value={modePaiement}
+            onChange={(event) => setModePaiement(event.target.value)}
+            className="rounded border px-3 py-2"
+          >
+            {MODES_PAIEMENT.map((mode) => (
+              <option key={mode.value} value={mode.value}>
+                {mode.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Fournisseur (facultatif)
+          <select
+            value={fournisseurId}
+            onChange={(event) => setFournisseurId(event.target.value)}
+            className="rounded border px-3 py-2"
+          >
+            <option value="">—</option>
+            {fournisseurs.map((fournisseur) => (
+              <option key={fournisseur.id} value={fournisseur.id}>
+                {fournisseur.nom}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
 

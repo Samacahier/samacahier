@@ -26,16 +26,19 @@ export async function createClient(input: ClientFormInput) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { error: "Non authentifié." };
+  if (!user) return { error: "Non authentifié.", client: null };
 
-  const { error } = await supabase
+  const { data: client, error } = await supabase
     .from("clients")
-    .insert({ ...input, commercant_id: user.id });
+    .insert({ ...input, commercant_id: user.id })
+    .select()
+    .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: error.message, client: null };
 
   revalidatePath("/clients");
-  return { error: null };
+  revalidatePath("/ventes");
+  return { error: null, client };
 }
 
 export async function updateClient(id: string, input: Partial<ClientFormInput>) {
