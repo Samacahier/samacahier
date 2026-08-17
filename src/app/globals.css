@@ -35,6 +35,16 @@
   --color-status-credit-bg: #f5e2c8;
   --color-status-impaye: #8b3a2e;
   --color-status-impaye-bg: #f1e0da;
+
+  /* Page publique (sama-cahier-landing.html) : couleurs et polices propres
+     à la maquette, en plus des tokens ci-dessus qu'elle réutilise déjà
+     (page, card, secondary, ink, ink-muted, accent, hero-start). */
+  --color-accent-dark: #b8621a;
+  --color-hero-deep: #3e2417;
+  --font-display: var(--font-bricolage-grotesque);
+  --font-hand: var(--font-caveat);
+  --font-jetbrains: var(--font-jetbrains-mono);
+  --font-body: var(--font-inter);
 }
 
 @media (prefers-color-scheme: dark) {

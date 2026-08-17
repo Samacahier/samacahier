@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sama Cahier — Le cahier de votre commerce, maintenant fiable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E6D6BD;
+    --surface: #FFF9EF;
+    --surface-secondary: #F7E7CE;
+    --ink-1: #2D2616;
+    --ink-2: #524940;
+    --accent: #D97B1E;
+    --accent-dark: #B8621A;
+    --hero-1: #5A3723;
+    --hero-2: #3E2417;
+    --payee-line: #4E6350;
+    --payee-fill: #E4EEE3;
+    --credit-line: #B8621A;
+    --credit-fill: #F5E2C8;
+    --impaye-line: #8B3A2E;
+    --impaye-fill: #F1E0DA;
+    --line: rgba(45,38,22,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink-1);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .hand { font-family: 'Caveat', cursive; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- perforation / spiral signature ---------- */
+  .perf-v {
+    width: 2px;
+    align-self: stretch;
+    background-image: radial-gradient(circle, var(--ink-1) 2.4px, transparent 3px);
+    background-size: 100% 24px;
+    background-repeat: repeat-y;
+    background-position: center top;
+    opacity: 0.28;
+  }
+  .perf-h {
+    height: 2px;
+    background-image: radial-gradient(circle, var(--ink-1) 2.2px, transparent 2.6px);
+    background-size: 26px 100%;
+    background-repeat: repeat-x;
+    opacity: 0.14;
+  }
+
+  /* ---------- nav ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(230, 214, 189, 0.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 76px;
+  }
+  .wordmark {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .wordmark .dot { color: var(--accent); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1.5px solid var(--ink-1);
+    font-weight: 600;
+    font-size: 14.5px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .nav-cta:hover { background: var(--ink-1); color: var(--surface); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    padding: 76px 0 40px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 2px 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-dark);
+    margin-bottom: 22px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-size: clamp(34px, 4.6vw, 54px);
+    line-height: 1.05;
+    margin-bottom: 22px;
+  }
+  .hero h1 .accent-word { color: var(--accent-dark); }
+  .hero p.lead {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 46ch;
+    margin-bottom: 32px;
+  }
+  .cta-row { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: var(--surface);
+    font-weight: 700;
+    font-size: 15.5px;
+    padding: 15px 26px;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px -10px rgba(217,123,30,0.55);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 28px -10px rgba(217,123,30,0.65); }
+  .btn-ghost-link {
+    font-weight: 600;
+    font-size: 15px;
+    border-bottom: 1.5px solid var(--ink-1);
+    padding-bottom: 2px;
+  }
+  .hand-note {
+    position: absolute;
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--accent-dark);
+    transform: rotate(-6deg);
+  }
+
+  /* ---------- phone mockup ---------- */
+  .phone {
+    width: 290px;
+    margin: 0 auto;
+    background: #17110B;
+    border-radius: 34px;
+    padding: 12px;
+    box-shadow: 0 30px 60px -20px rgba(45,38,22,0.45);
+  }
+  .phone-screen {
+    background: var(--bg);
+    border-radius: 24px;
+    overflow: hidden;
+    height: 490px;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-statusbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 20px 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .phone-body { padding: 8px 16px 18px; flex: 1; overflow: hidden; }
+  .mock-hero {
+    background: linear-gradient(135deg, var(--hero-1), var(--hero-2));
+    border-radius: 18px;
+    padding: 16px;
+    color: var(--surface);
+    margin-bottom: 10px;
+  }
+  .mock-hero .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+  .mock-hero .amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .mock-poches { display: flex; gap: 18px; font-size: 11px; opacity: 0.85; }
+  .mock-poches strong { display: block; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-top: 2px; }
+  .mock-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .mock-stat {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 9px 12px;
+  }
+  .mock-stat .l { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+  .mock-stat .v { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; margin-top: 3px; }
+  .mock-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mock-actions div {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .mock-actions .a1 { background: var(--accent); color: var(--surface); }
+  .mock-actions .a2 { background: var(--surface-secondary); }
+  .mock-nav {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 4px;
+    border-top: 1px solid var(--line);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .mock-nav .active { color: var(--accent-dark); }
+
+  /* ---------- problem band ---------- */
+  .problem {
+    background: linear-gradient(180deg, var(--hero-1), var(--hero-2));
+    color: var(--surface);
+    padding: 84px 0;
+    margin-top: 60px;
+  }
+  .problem h2 {
+    color: var(--surface);
+    font-size: clamp(26px, 3.4vw, 36px);
+    max-width: 20ch;
+    margin-bottom: 48px;
+  }
+  .problem-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-bottom: 40px; }
+  .problem-item {
+    background: rgba(255,249,239,0.06);
+    border: 1px solid rgba(255,249,239,0.14);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .problem-item .strike {
+    font-size: 15.5px;
+    text-decoration: line-through;
+    text-decoration-color: rgba(217,123,30,0.7);
+    text-decoration-thickness: 2px;
+    opacity: 0.72;
+  }
+  .pivot {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: clamp(20px, 2.6vw, 26px);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .pivot::before {
+    content: "";
+    width: 34px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  /* ---------- features ---------- */
+  .features { padding: 88px 0 60px; }
+  .section-head { max-width: 56ch; margin-bottom: 48px; }
+  .section-head .eyebrow { color: var(--accent-dark); }
+  .section-head h2 { font-size: clamp(26px, 3.2vw, 34px); }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .feature-card {
+    background: var(--surface);
+    padding: 28px 24px;
+    min-height: 168px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .feature-card .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-dark);
+    font-weight: 700;
+  }
+  .feature-card h3 { font-size: 16.5px; font-weight: 700; }
+  .feature-card p { font-size: 13.5px; color: var(--ink-2); }
+
+  /* ---------- poches callout ---------- */
+  .poches {
+    padding: 20px 0 90px;
+  }
+  .poches-inner {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 56px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    border: 1px solid var(--line);
+  }
+  .poches h2 { font-size: clamp(24px, 2.8vw, 30px); margin-bottom: 16px; }
+  .poches p { color: var(--ink-2); font-size: 15.5px; max-width: 42ch; }
+  .poche-cards { display: flex; gap: 18px; }
+  .poche-card {
+    flex: 1;
+    border-radius: 16px;
+    padding: 22px 18px;
+    color: var(--surface);
+  }
+  .poche-card.a { background: linear-gradient(135deg, var(--hero-1), var(--hero-2)); }
+  .poche-card.b { background: var(--accent-dark); }
+  .poche-card .t { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.8; margin-bottom: 8px; }
+  .poche-card .m { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
+
+  /* ---------- final cta ---------- */
+  .final-cta {
+    background: linear-gradient(180deg, var(--hero-1), var(--hero-2));
+    color: var(--surface);
+    padding: 100px 0;
+    text-align: center;
+  }
+  .final-cta h2 { color: var(--surface); font-size: clamp(28px, 4vw, 42px); max-width: 22ch; margin: 0 auto 18px; }
+  .final-cta p { color: rgba(255,249,239,0.75); margin-bottom: 34px; }
+  .final-cta .btn-primary { margin: 0 auto; }
+
+  footer {
+    padding: 36px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13.5px;
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 880px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .perf-v { display: none; }
+    .problem-list { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    .poches-inner { grid-template-columns: 1fr; padding: 32px; }
+    .phone { width: 250px; }
+    .phone-screen { height: 480px; }
+  }
+  @media (max-width: 520px) {
+    .feature-grid { grid-template-columns: 1fr; }
+    .wrap { padding: 0 20px; }
+    footer .wrap { flex-direction: column; gap: 8px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav-inner">
+    <div class="wordmark">Sama<span class="dot">·</span>Cahier</div>
+    <a href="#" class="nav-cta">Se connecter</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Pensé pour les commerçants sénégalais</div>
+      <h1>Le cahier de votre commerce ne se <span class="accent-word">perd</span> plus.</h1>
+      <p class="lead">Ventes, dépenses, stock, dettes et caisse — tout ce que vous notiez à la main, maintenant fiable et toujours avec vous.</p>
+      <div class="cta-row">
+        <a href="#" class="btn-primary">Créer mon compte →</a>
+        <a href="#fonctionnalites" class="btn-ghost-link">Voir comment ça marche</a>
+      </div>
+    </div>
+    <div class="perf-v"></div>
+    <div style="position:relative;">
+      <span class="hand-note" style="top:-18px; left:8px;">en 2 minutes ✎</span>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-statusbar"><span>12:41</span><span>●●●●</span></div>
+          <div class="phone-body">
+            <div class="mock-hero">
+              <div class="label">Solde disponible total</div>
+              <div class="amount">65 000 F</div>
+              <div class="mock-poches">
+                <div>Ma Caisse<strong>50 000 F</strong></div>
+                <div>Ma Poche<strong>15 000 F</strong></div>
+              </div>
+            </div>
+            <div class="mock-stats">
+              <div class="mock-stat"><div class="l">Chiffre d'affaires</div><div class="v">0 F</div></div>
+              <div class="mock-stat"><div class="l">Créances</div><div class="v">0 F</div></div>
+            </div>
+            <div class="mock-actions">
+              <div class="a1">Nouvelle vente</div>
+              <div class="a2">Dépense</div>
+            </div>
+            <div style="font-size:11px; font-weight:700; color:var(--ink-2); margin-bottom:8px;">DERNIÈRES OPÉRATIONS</div>
+            <div style="background:var(--surface); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:6px;">
+              <span>Vente — Riz 5kg</span><span class="mono" style="font-weight:700;">+3 500 F</span>
+            </div>
+            <div style="background:var(--surface); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; font-size:11.5px;">
+              <span>Dépense — Transport</span><span class="mono" style="font-weight:700; color:var(--impaye-line);">−1 000 F</span>
+            </div>
+            <div class="mock-nav">
+              <span class="active">Accueil</span><span>Vente</span><span>Dépenses</span><span>Stock</span><span>Plus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="problem">
+  <div class="wrap">
+    <h2>Un cahier en papier, ça oublie autant que ça garde.</h2>
+    <div class="problem-list">
+      <div class="problem-item">
+        <p class="strike">Un client qui doit de l'argent, et vous ne retrouvez plus la page.</p>
+      </div>
+      <div class="problem-item">
+        <p class="strike">L'argent du commerce mélangé avec l'argent de la maison.</p>
+      </div>
+      <div class="problem-item">
+        <p class="strike">Un stock qui part sans qu'on sache pourquoi la caisse est vide.</p>
+      </div>
+    </div>
+    <div class="pivot">Sama Cahier tient les comptes à votre place.</div>
+  </div>
+</section>
+
+<section class="features" id="fonctionnalites">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Ce que vous pouvez faire</div>
+      <h2>Tout ce qu'un commerce doit suivre, au même endroit.</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="num">01</span>
+        <h3>Ventes</h3>
+        <p>Chaque vente enregistrée — payée, à crédit ou impayée.</p>
+      </div>
+      <div class="feature-card">
+        <span class="num">02</span>
+        <h3>Dépenses</h3>
+        <p>Ce qui sort, et d'où : caisse du commerce ou poche personnelle.</p>
+      </div>
+      <div class="feature-card">
+        <span class="num">03</span>
+        <h3>Stock</h3>
+        <p>Ce qu'il vous reste, avant qu'il ne soit trop tard.</p>
+      </div>
+      <div class="feature-card">
+        <span class="num">04</span>
+        <h3>Créances</h3>
+        <p>Qui vous doit quoi, et depuis quand.</p>
+      </div>
+      <div class="feature-card">
+        <span class="num">05</span>
+        <h3>Caisse</h3>
+        <p>Deux poches séparées, jamais mélangées.</p>
+      </div>
+      <div class="feature-card">
+        <span class="num">06</span>
+        <h3>Tableaux de bord</h3>
+        <p>L'état réel de votre commerce, en un coup d'œil.</p>
+      </div>
+      <div class="feature-card">
+        <span class="num">07</span>
+        <h3>Documents</h3>
+        <p>Reçus et rapports prêts à imprimer ou partager.</p>
+      </div>
+      <div class="feature-card" style="background: var(--surface-secondary); justify-content:center;">
+        <p style="font-size:14.5px; color:var(--ink-1); font-weight:600;">Pensé pour être utilisé sans formation comptable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="poches">
+  <div class="wrap">
+    <div class="poches-inner">
+      <div>
+        <div class="eyebrow">Le vrai problème, réglé</div>
+        <h2>Votre argent perso n'est plus mélangé au commerce.</h2>
+        <p>Ma Caisse pour le commerce, Ma Poche pour le personnel. Chaque vente, chaque dépense va dans la bonne poche — vous savez enfin ce qui vous appartient.</p>
+      </div>
+      <div class="poche-cards">
+        <div class="poche-card a">
+          <div class="t">Ma Caisse</div>
+          <div class="m">50 000 F</div>
+        </div>
+        <div class="poche-card b">
+          <div class="t">Ma Poche</div>
+          <div class="m">15 000 F</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap">
+    <h2>Commencez à tenir vos comptes correctement, aujourd'hui.</h2>
+    <p>Gratuit pour démarrer. Aucune carte bancaire nécessaire.</p>
+    <a href="#" class="btn-primary">Créer mon compte →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%;">
+    <span class="wordmark" style="font-size:16px;">Sama<span class="dot">·</span>Cahier</span>
+    <span>Fait pour les commerçants du Sénégal.</span>
+  </div>
+</footer>
+
+</body>
+</html>
