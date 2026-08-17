@@ -6,7 +6,7 @@ import type { Commercant } from "@/types/database";
 
 export type CommercantOverview = {
   commercant: Commercant;
-  totalVentesMontant: number;
+  chiffreAffaires: number;
   soldeCaisse: number;
 };
 
@@ -27,8 +27,10 @@ export async function listCommercantsOverview(): Promise<CommercantOverview[]> {
       const stats = await getDashboardStats(commercant.id);
       return {
         commercant,
-        totalVentesMontant: stats.totalVentesMontant,
-        soldeCaisse: stats.soldeCaisse,
+        chiffreAffaires: stats.chiffreAffaires,
+        // Solde combiné (Ma Caisse + Ma Poche) : équivalent au solde de
+        // caisse global affiché avant l'introduction des deux poches.
+        soldeCaisse: stats.soldeCaisse + stats.soldePoche,
       };
     }),
   );

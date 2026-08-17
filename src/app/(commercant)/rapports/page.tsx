@@ -1,6 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
-import { getRapportPeriode, type RapportPeriode } from "@/lib/rapports/queries";
+import {
+  getRapportPeriode,
+  getApercuGlobal,
+  getVentesParStatut,
+  type RapportPeriode,
+  type ApercuGlobal,
+  type VentesParStatut,
+} from "@/lib/rapports/queries";
 import PrintButton from "@/components/ui/PrintButton";
+import BilanMensuelCard from "@/components/rapports/BilanMensuelCard";
+import ApercuGlobalSection from "@/components/rapports/ApercuGlobalSection";
+import VentesParStatutSection from "@/components/rapports/VentesParStatutSection";
 
 type RapportsPageProps = {
   searchParams: Promise<{ debut?: string; fin?: string }>;
@@ -11,6 +21,19 @@ const RAPPORT_VIDE: RapportPeriode = {
   totalDepenses: 0,
   soldeCaisse: 0,
   totalCreancesEnCours: 0,
+};
+
+const APERCU_VIDE: ApercuGlobal = {
+  chiffreAffaires: 0,
+  totalDepenses: 0,
+  totalCreancesEnCours: 0,
+  margeBrute: 0,
+};
+
+const STATUTS_VIDE: VentesParStatut = {
+  paye: { montant: 0, nombre: 0 },
+  credit: { montant: 0, nombre: 0 },
+  impaye: { montant: 0, nombre: 0 },
 };
 
 function premierJourMoisEnCours(): string {
@@ -28,24 +51,31 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
   const params = await searchParams;
   const debut = params.debut ?? premierJourMoisEnCours();
   const fin = params.fin ?? aujourdHui();
+  const moisEnCours = aujourdHui().slice(0, 7);
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const rapport = user
-    ? await getRapportPeriode(user.id, debut, fin)
-    : RAPPORT_VIDE;
+  const [rapport, apercuGlobal, ventesParStatut] = user
+    ? await Promise.all([
+        getRapportPeriode(user.id, debut, fin),
+        getApercuGlobal(user.id),
+        getVentesParStatut(user.id, debut, fin),
+      ])
+    : [RAPPORT_VIDE, APERCU_VIDE, STATUTS_VIDE];
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between print:hidden">
+    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
+      <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-semibold">Rapport</h1>
         <PrintButton />
       </div>
 
-      <form method="get" className="mb-6 flex items-end gap-3 print:hidden">
+      <BilanMensuelCard moisParDefaut={moisEnCours} />
+
+      <form method="get" className="flex items-end gap-3 print:hidden">
         <label className="flex flex-col gap-1 text-sm">
           Du
           <input
@@ -101,6 +131,15 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
           </div>
         </dl>
       </div>
+
+      <VentesParStatutSection statuts={ventesParStatut} />
+
+      <ApercuGlobalSection
+        chiffreAffaires={apercuGlobal.chiffreAffaires}
+        totalDepenses={apercuGlobal.totalDepenses}
+        totalCreancesEnCours={apercuGlobal.totalCreancesEnCours}
+        margeBrute={apercuGlobal.margeBrute}
+      />
     </main>
   );
 }

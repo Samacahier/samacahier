@@ -1,15 +1,25 @@
 import { createClient } from "@/lib/supabase/server";
-import { getDashboardStats, type DashboardStats } from "@/lib/dashboard/queries";
+import { getDashboardStats, getDernieresOperations } from "@/lib/dashboard/queries";
+import { getCommercant } from "@/lib/commercants/queries";
+import { listStocks } from "@/lib/stocks/queries";
+import { listClients } from "@/lib/clients/queries";
+import { listFournisseurs } from "@/lib/fournisseurs/queries";
+import type { DashboardStats } from "@/lib/dashboard/queries";
+import HeroSoldeCard from "@/components/dashboard/HeroSoldeCard";
 import StatCard from "@/components/dashboard/StatCard";
-import DashboardNav from "@/components/dashboard/DashboardNav";
+import AlerteStockBanner from "@/components/dashboard/AlerteStockBanner";
+import DernieresOperations from "@/components/dashboard/DernieresOperations";
+import DashboardQuickActions from "@/components/dashboard/DashboardQuickActions";
 
 const STATS_VIDES: DashboardStats = {
-  totalVentesMontant: 0,
+  chiffreAffaires: 0,
   totalVentesNombre: 0,
+  encaissements: 0,
   totalDepenses: 0,
-  soldeCaisse: 0,
   totalCreancesEnCours: 0,
-  articlesEnAlerte: 0,
+  soldeCaisse: 0,
+  soldePoche: 0,
+  produitsEnAlerte: [],
 };
 
 export default async function DashboardPage() {
@@ -18,34 +28,56 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const stats = user ? await getDashboardStats(user.id) : STATS_VIDES;
+  const [stats, operations, commercant, produits, clients, fournisseurs] = user
+    ? await Promise.all([
+        getDashboardStats(user.id),
+        getDernieresOperations(user.id, 5),
+        getCommercant(user.id),
+        listStocks(user.id),
+        listClients(user.id),
+        listFournisseurs(user.id),
+      ])
+    : [STATS_VIDES, [], null, [], [], []];
+
+  const devise = commercant?.devise ?? "FCFA";
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-semibold">Tableau de bord</h1>
+    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8">
+      <HeroSoldeCard
+        devise={devise}
+        soldeCaisse={stats.soldeCaisse}
+        soldePoche={stats.soldePoche}
+      />
 
-      <DashboardNav />
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4">
         <StatCard
-          label="Ventes (mois en cours)"
-          value={`${stats.totalVentesMontant.toLocaleString("fr-FR")} FCFA`}
+          label="Chiffre d'affaires"
+          value={`${stats.chiffreAffaires.toLocaleString("fr-FR")} ${devise}`}
           hint={`${stats.totalVentesNombre} vente${stats.totalVentesNombre > 1 ? "s" : ""}`}
         />
         <StatCard
-          label="Dépenses (mois en cours)"
-          value={`${stats.totalDepenses.toLocaleString("fr-FR")} FCFA`}
+          label="Encaissements"
+          value={`${stats.encaissements.toLocaleString("fr-FR")} ${devise}`}
         />
         <StatCard
-          label="Solde de caisse"
-          value={`${stats.soldeCaisse.toLocaleString("fr-FR")} FCFA`}
+          label="Créances"
+          value={`${stats.totalCreancesEnCours.toLocaleString("fr-FR")} ${devise}`}
         />
         <StatCard
-          label="Créances en cours"
-          value={`${stats.totalCreancesEnCours.toLocaleString("fr-FR")} FCFA`}
+          label="Dépenses"
+          value={`${stats.totalDepenses.toLocaleString("fr-FR")} ${devise}`}
         />
-        <StatCard label="Articles en alerte" value={String(stats.articlesEnAlerte)} />
       </div>
+
+      <AlerteStockBanner produits={stats.produitsEnAlerte} />
+
+      <DashboardQuickActions
+        produits={produits}
+        clients={clients}
+        fournisseurs={fournisseurs}
+      />
+
+      <DernieresOperations operations={operations} />
     </main>
   );
 }

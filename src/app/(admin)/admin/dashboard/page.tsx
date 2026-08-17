@@ -20,12 +20,12 @@ export default async function AdminDashboardPage() {
             </tr>
           </thead>
           <tbody>
-            {overviews.map(({ commercant, totalVentesMontant, soldeCaisse }) => (
+            {overviews.map(({ commercant, chiffreAffaires, soldeCaisse }) => (
               <tr key={commercant.id} className="border-b">
                 <td className="py-2">{commercant.nom_commerce}</td>
                 <td className="py-2">{commercant.created_at.slice(0, 10)}</td>
                 <td className="py-2">
-                  {totalVentesMontant.toLocaleString("fr-FR")} FCFA
+                  {chiffreAffaires.toLocaleString("fr-FR")} FCFA
                 </td>
                 <td className="py-2">{soldeCaisse.toLocaleString("fr-FR")} FCFA</td>
               </tr>
