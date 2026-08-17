@@ -14,6 +14,8 @@ type CreanceFormProps = {
   onCancel: () => void;
 };
 
+const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
+
 const STATUTS = [
   { value: "en_cours", label: "En cours" },
   { value: "soldee", label: "Soldée" },
@@ -65,32 +67,32 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-2xl bg-card p-4">
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Client
           <input
             type="text"
             required
             value={clientNom}
             onChange={(event) => setClientNom(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Téléphone
           <input
             type="tel"
             value={clientTelephone}
             onChange={(event) => setClientTelephone(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Montant dû (FCFA)
           <input
             type="number"
@@ -99,11 +101,11 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
             required
             value={montant}
             onChange={(event) => setMontant(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Montant remboursé (FCFA)
           <input
             type="number"
@@ -111,20 +113,20 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
             step="any"
             value={montantRembourse}
             onChange={(event) => setMontantRembourse(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Statut
           <select
             value={statut}
             onChange={(event) =>
               setStatut(event.target.value as CreanceFormInput["statut"])
             }
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           >
             {STATUTS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -134,28 +136,32 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
           </select>
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Échéance
           <input
             type="date"
             value={dateEcheance}
             onChange={(event) => setDateEcheance(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-impaye">{error}</p>}
 
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="rounded-xl bg-accent px-3 py-2 font-medium text-white disabled:opacity-50"
         >
           {loading ? "Enregistrement..." : creance ? "Modifier" : "Ajouter"}
         </button>
-        <button type="button" onClick={onCancel} className="rounded border px-3 py-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-xl bg-secondary px-3 py-2 font-medium text-ink"
+        >
           Annuler
         </button>
       </div>

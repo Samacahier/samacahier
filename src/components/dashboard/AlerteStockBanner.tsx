@@ -8,7 +8,7 @@ export default function AlerteStockBanner({ produits }: AlerteStockBannerProps) 
   const noms = produits.map((produit) => produit.nomArticle).join(", ");
 
   return (
-    <div className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+    <div className="rounded-2xl border border-status-credit bg-status-credit-bg px-4 py-3 text-sm text-status-credit">
       {produits.length} produit{produits.length > 1 ? "s" : ""} en alerte stock — {noms} —
       pensez à réapprovisionner
     </div>

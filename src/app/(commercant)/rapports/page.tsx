@@ -69,62 +69,65 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
       <div className="flex items-center justify-between print:hidden">
-        <h1 className="text-2xl font-semibold">Rapport</h1>
+        <h1 className="text-2xl font-semibold text-ink">Rapport</h1>
         <PrintButton />
       </div>
 
       <BilanMensuelCard moisParDefaut={moisEnCours} />
 
       <form method="get" className="flex items-end gap-3 print:hidden">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Du
           <input
             type="date"
             name="debut"
             defaultValue={debut}
-            className="rounded border px-3 py-2"
+            className="rounded-xl border border-line bg-card px-3 py-2 text-ink"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Au
           <input
             type="date"
             name="fin"
             defaultValue={fin}
-            className="rounded border px-3 py-2"
+            className="rounded-xl border border-line bg-card px-3 py-2 text-ink"
           />
         </label>
-        <button type="submit" className="rounded bg-black px-3 py-2 text-white">
+        <button
+          type="submit"
+          className="rounded-xl bg-accent px-3 py-2 font-medium text-white"
+        >
           Afficher
         </button>
       </form>
 
-      <div className="rounded border p-8 text-black print:border-0 print:p-0">
-        <p className="mb-6 text-sm text-zinc-600">
+      <div className="rounded-2xl bg-card p-8 text-ink print:border print:border-line print:p-6">
+        <p className="mb-6 text-sm text-ink-muted">
           Période du {debut} au {fin}
         </p>
 
         <dl className="grid grid-cols-2 gap-6">
           <div>
-            <dt className="text-sm text-zinc-600">Total ventes</dt>
+            <dt className="text-sm text-ink-muted">Total ventes</dt>
             <dd className="text-xl font-semibold">
               {rapport.totalVentes.toLocaleString("fr-FR")} FCFA
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-zinc-600">Total dépenses</dt>
+            <dt className="text-sm text-ink-muted">Total dépenses</dt>
             <dd className="text-xl font-semibold">
               {rapport.totalDepenses.toLocaleString("fr-FR")} FCFA
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-zinc-600">Solde de caisse</dt>
+            <dt className="text-sm text-ink-muted">Solde de caisse</dt>
             <dd className="text-xl font-semibold">
               {rapport.soldeCaisse.toLocaleString("fr-FR")} FCFA
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-zinc-600">Créances en cours</dt>
+            <dt className="text-sm text-ink-muted">Créances en cours</dt>
             <dd className="text-xl font-semibold">
               {rapport.totalCreancesEnCours.toLocaleString("fr-FR")} FCFA
             </dd>

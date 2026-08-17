@@ -37,11 +37,11 @@ export default function DepenseList({ depenses, fournisseurs }: DepenseListProps
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Dépenses</h1>
+        <h1 className="text-2xl font-semibold text-ink">Dépenses</h1>
         <button
           type="button"
           onClick={() => setShowCreateForm(true)}
-          className="rounded bg-black px-3 py-2 text-white"
+          className="rounded-xl bg-accent px-3 py-2 font-medium text-white"
         >
           Nouvelle dépense
         </button>
@@ -69,52 +69,54 @@ export default function DepenseList({ depenses, fournisseurs }: DepenseListProps
       )}
 
       {depenses.length === 0 ? (
-        <p className="text-sm text-zinc-600">Aucune dépense enregistrée.</p>
+        <p className="text-sm text-ink-muted">Aucune dépense enregistrée.</p>
       ) : (
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="py-2">Date</th>
-              <th className="py-2">Libellé</th>
-              <th className="py-2">Catégorie</th>
-              <th className="py-2">Source</th>
-              <th className="py-2">Fournisseur</th>
-              <th className="py-2">Montant</th>
-              <th className="py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {depenses.map((depense) => (
-              <tr key={depense.id} className="border-b">
-                <td className="py-2">{depense.date_depense}</td>
-                <td className="py-2">{depense.libelle}</td>
-                <td className="py-2">{depense.categorie ?? "—"}</td>
-                <td className="py-2">{SOURCE_LABELS[depense.source]}</td>
-                <td className="py-2">{nomFournisseur(depense.fournisseur_id)}</td>
-                <td className="py-2">{depense.montant.toLocaleString("fr-FR")}</td>
-                <td className="py-2">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditingId(depense.id)}
-                      className="underline"
-                    >
-                      Modifier
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(depense.id)}
-                      disabled={deletingId === depense.id}
-                      className="text-red-600 underline disabled:opacity-50"
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                </td>
+        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-line">
+                <th className="py-2 text-ink-muted">Date</th>
+                <th className="py-2 text-ink-muted">Libellé</th>
+                <th className="py-2 text-ink-muted">Catégorie</th>
+                <th className="py-2 text-ink-muted">Source</th>
+                <th className="py-2 text-ink-muted">Fournisseur</th>
+                <th className="py-2 text-ink-muted">Montant</th>
+                <th className="py-2" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {depenses.map((depense) => (
+                <tr key={depense.id} className="border-b border-line">
+                  <td className="py-2">{depense.date_depense}</td>
+                  <td className="py-2">{depense.libelle}</td>
+                  <td className="py-2">{depense.categorie ?? "—"}</td>
+                  <td className="py-2">{SOURCE_LABELS[depense.source]}</td>
+                  <td className="py-2">{nomFournisseur(depense.fournisseur_id)}</td>
+                  <td className="py-2">{depense.montant.toLocaleString("fr-FR")}</td>
+                  <td className="py-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(depense.id)}
+                        className="underline"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(depense.id)}
+                        disabled={deletingId === depense.id}
+                        className="text-status-impaye underline disabled:opacity-50"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

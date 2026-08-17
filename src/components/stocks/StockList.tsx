@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Modal from "@/components/ui/Modal";
 import StockForm from "./StockForm";
 import { deleteStock } from "@/lib/stocks/queries";
 import type { Fournisseur, Stock } from "@/types/database";
@@ -14,6 +15,8 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const stockEnEdition = stocks.find((stock) => stock.id === editingId) ?? null;
 
   const nomFournisseur = (id: string | null) =>
     fournisseurs.find((fournisseur) => fournisseur.id === id)?.nom ?? "—";
@@ -29,62 +32,66 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Produits</h1>
+        <h1 className="text-2xl font-semibold text-ink">Produits</h1>
         <button
           type="button"
-          onClick={() => setShowCreateForm((value) => !value)}
-          className="rounded bg-black px-3 py-2 text-white"
+          onClick={() => setShowCreateForm(true)}
+          className="rounded-xl bg-accent px-3 py-2 font-medium text-white"
         >
-          {showCreateForm ? "Fermer" : "Nouveau produit"}
+          Nouveau produit
         </button>
       </div>
 
       {showCreateForm && (
-        <StockForm
-          fournisseurs={fournisseurs}
-          onSuccess={() => setShowCreateForm(false)}
-          onCancel={() => setShowCreateForm(false)}
-        />
+        <Modal title="Nouveau produit" onClose={() => setShowCreateForm(false)}>
+          <StockForm
+            fournisseurs={fournisseurs}
+            onSuccess={() => setShowCreateForm(false)}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        </Modal>
+      )}
+
+      {stockEnEdition && (
+        <Modal title="Modifier le produit" onClose={() => setEditingId(null)}>
+          <StockForm
+            stock={stockEnEdition}
+            fournisseurs={fournisseurs}
+            onSuccess={() => setEditingId(null)}
+            onCancel={() => setEditingId(null)}
+          />
+        </Modal>
       )}
 
       {stocks.length === 0 ? (
-        <p className="text-sm text-zinc-600">Aucun produit enregistré.</p>
+        <p className="text-sm text-ink-muted">Aucun produit enregistré.</p>
       ) : (
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="py-2">ID</th>
-              <th className="py-2">Produit</th>
-              <th className="py-2">Catégorie</th>
-              <th className="py-2">Quantité</th>
-              <th className="py-2">Unité</th>
-              <th className="py-2">Prix achat</th>
-              <th className="py-2">Prix vente</th>
-              <th className="py-2">Fournisseur</th>
-              <th className="py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {stocks.map((stock) =>
-              editingId === stock.id ? (
-                <tr key={stock.id}>
-                  <td colSpan={9} className="py-2">
-                    <StockForm
-                      stock={stock}
-                      fournisseurs={fournisseurs}
-                      onSuccess={() => setEditingId(null)}
-                      onCancel={() => setEditingId(null)}
-                    />
-                  </td>
-                </tr>
-              ) : (
-                <tr key={stock.id} className="border-b">
-                  <td className="py-2 text-zinc-500">{stock.code_produit}</td>
+        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-line">
+                <th className="py-2 text-ink-muted">ID</th>
+                <th className="py-2 text-ink-muted">Produit</th>
+                <th className="py-2 text-ink-muted">Catégorie</th>
+                <th className="py-2 text-ink-muted">Quantité</th>
+                <th className="py-2 text-ink-muted">Unité</th>
+                <th className="py-2 text-ink-muted">Prix achat</th>
+                <th className="py-2 text-ink-muted">Prix vente</th>
+                <th className="py-2 text-ink-muted">Fournisseur</th>
+                <th className="py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {stocks.map((stock) => (
+                <tr key={stock.id} className="border-b border-line">
+                  <td className="py-2 text-ink-muted">{stock.code_produit}</td>
                   <td className="py-2">{stock.nom_article}</td>
                   <td className="py-2">{stock.categorie ?? "—"}</td>
                   <td
                     className={`py-2 ${
-                      stock.quantite <= stock.seuil_alerte ? "text-red-600" : ""
+                      stock.quantite <= stock.seuil_alerte
+                        ? "font-medium text-status-impaye"
+                        : ""
                     }`}
                   >
                     {stock.quantite}
@@ -110,17 +117,17 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
                         type="button"
                         onClick={() => handleDelete(stock.id)}
                         disabled={deletingId === stock.id}
-                        className="text-red-600 underline disabled:opacity-50"
+                        className="text-status-impaye underline disabled:opacity-50"
                       >
                         Supprimer
                       </button>
                     </div>
                   </td>
                 </tr>
-              ),
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

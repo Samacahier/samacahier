@@ -26,7 +26,7 @@ export default function TresorerieTabs({
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold">Trésorerie</h1>
 
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-2 border-b border-line">
         {ONGLETS.map((valeur) => (
           <button
             key={valeur}
@@ -34,8 +34,8 @@ export default function TresorerieTabs({
             onClick={() => setOnglet(valeur)}
             className={`px-3 py-2 text-sm ${
               onglet === valeur
-                ? "border-b-2 border-black font-semibold"
-                : "text-zinc-500"
+                ? "border-b-2 border-accent font-semibold text-accent"
+                : "text-ink-muted"
             }`}
           >
             {valeur}

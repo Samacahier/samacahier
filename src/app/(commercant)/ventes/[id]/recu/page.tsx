@@ -28,36 +28,36 @@ export default async function RecuVentePage({ params }: RecuVentePageProps) {
         <PrintButton />
       </div>
 
-      <div className="rounded border p-8 text-black print:border-0 print:p-0">
-        <header className="mb-8 flex items-start justify-between border-b pb-4">
+      <div className="rounded-2xl bg-card p-8 text-ink print:rounded-none print:border print:border-line">
+        <header className="mb-8 flex items-start justify-between border-b border-line pb-4">
           <div>
             <h1 className="text-xl font-semibold">
               {commercant?.nom_commerce ?? "Commerce"}
             </h1>
             {commercant?.adresse && (
-              <p className="text-sm text-zinc-600">{commercant.adresse}</p>
+              <p className="text-sm text-ink-muted">{commercant.adresse}</p>
             )}
             {commercant?.telephone && (
-              <p className="text-sm text-zinc-600">{commercant.telephone}</p>
+              <p className="text-sm text-ink-muted">{commercant.telephone}</p>
             )}
           </div>
           <div className="text-right">
-            <p className="text-sm text-zinc-600">Reçu de vente</p>
-            <p className="text-sm text-zinc-600">{vente.date_vente}</p>
+            <p className="text-sm text-ink-muted">Reçu de vente</p>
+            <p className="text-sm text-ink-muted">{vente.date_vente}</p>
           </div>
         </header>
 
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b">
-              <th className="py-2">Description</th>
-              <th className="py-2">Quantité</th>
-              <th className="py-2">Prix unitaire</th>
-              <th className="py-2">Total</th>
+            <tr className="border-b border-line">
+              <th className="py-2 text-ink-muted">Description</th>
+              <th className="py-2 text-ink-muted">Quantité</th>
+              <th className="py-2 text-ink-muted">Prix unitaire</th>
+              <th className="py-2 text-ink-muted">Total</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b">
+            <tr className="border-b border-line">
               <td className="py-2">{vente.description}</td>
               <td className="py-2">{vente.quantite}</td>
               <td className="py-2">{vente.prix_unitaire.toLocaleString("fr-FR")} FCFA</td>
@@ -74,7 +74,7 @@ export default async function RecuVentePage({ params }: RecuVentePageProps) {
           </p>
         </div>
 
-        <p className="mt-8 text-sm text-zinc-600">
+        <p className="mt-8 text-sm text-ink-muted">
           Mode de paiement : {MODE_PAIEMENT_LABELS[vente.mode_paiement]}
         </p>
       </div>

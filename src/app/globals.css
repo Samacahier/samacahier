@@ -12,6 +12,31 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Système de design Sama Cahier (Phase 5) — couleurs échantillonnées sur les
+   captures du prototype, appliquées à l'app commerçant. */
+@theme {
+  --color-page: #e6d6bd;
+  --color-card: #fff9ef;
+  --color-hero-start: #5a3723;
+  --color-hero-end: #57372a;
+  --color-accent: #d97b1e;
+  --color-secondary: #f7e7ce;
+  --color-ink: #2d2616;
+  --color-ink-muted: #524940;
+  --color-line: #e0cba8;
+
+  /* Payé : échantillonné précisément. Crédit/Impayé : non échantillonnés,
+     dérivés dans la même famille de tons (ambre pour Crédit, brun-rouge
+     pour Impayé) plutôt que des couleurs vives génériques — à recaler avec
+     de vraies captures si besoin. */
+  --color-status-paye: #4e6350;
+  --color-status-paye-bg: #e4eee3;
+  --color-status-credit: #b8621a;
+  --color-status-credit-bg: #f5e2c8;
+  --color-status-impaye: #8b3a2e;
+  --color-status-impaye-bg: #f1e0da;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

@@ -34,14 +34,14 @@ export default function DashboardQuickActions({
         <button
           type="button"
           onClick={() => setModalOuvert("vente")}
-          className="flex-1 rounded bg-black px-3 py-2 text-white"
+          className="flex-1 rounded-xl bg-accent px-3 py-2 font-medium text-white"
         >
           Nouvelle vente
         </button>
         <button
           type="button"
           onClick={() => setModalOuvert("depense")}
-          className="flex-1 rounded border px-3 py-2"
+          className="flex-1 rounded-xl bg-secondary px-3 py-2 font-medium text-ink"
         >
           Dépense
         </button>
@@ -56,7 +56,7 @@ export default function DashboardQuickActions({
                 setModalOuvert("vente");
                 setMenuOuvert(false);
               }}
-              className="rounded-full bg-black px-4 py-2 text-sm text-white shadow"
+              className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow"
             >
               Nouvelle vente
             </button>
@@ -66,7 +66,7 @@ export default function DashboardQuickActions({
                 setModalOuvert("depense");
                 setMenuOuvert(false);
               }}
-              className="rounded-full bg-black px-4 py-2 text-sm text-white shadow"
+              className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow"
             >
               Nouvelle dépense
             </button>
@@ -76,7 +76,7 @@ export default function DashboardQuickActions({
           type="button"
           onClick={() => setMenuOuvert((value) => !value)}
           aria-label="Actions rapides"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-2xl text-white shadow-lg"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl text-white shadow-lg"
         >
           {menuOuvert ? "×" : "+"}
         </button>

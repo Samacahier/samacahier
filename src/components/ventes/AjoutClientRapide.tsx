@@ -33,7 +33,7 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded border p-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-page p-3">
       <div className="flex gap-2">
         <input
           type="text"
@@ -41,31 +41,31 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
           placeholder="Nom du client"
           value={nom}
           onChange={(event) => setNom(event.target.value)}
-          className="flex-1 rounded border px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
         />
         <input
           type="tel"
           placeholder="Téléphone (facultatif)"
           value={telephone}
           onChange={(event) => setTelephone(event.target.value)}
-          className="flex-1 rounded border px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-impaye">{error}</p>}
 
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-black px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded-xl bg-accent px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {loading ? "Ajout..." : "Ajouter"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border px-3 py-1.5 text-sm"
+          className="rounded-xl bg-secondary px-3 py-1.5 text-sm text-ink"
         >
           Annuler
         </button>

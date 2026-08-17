@@ -11,6 +11,8 @@ type StockFormProps = {
   onCancel: () => void;
 };
 
+const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
+
 const CATEGORIES = [
   "Alimentaire",
   "Boissons",
@@ -71,35 +73,35 @@ export default function StockForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
-      <label className="flex flex-col gap-1 text-sm">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         ID produit
         <input
           type="text"
           disabled
           value={stock?.code_produit ?? "Généré automatiquement à la création"}
-          className="rounded border bg-zinc-100 px-3 py-2 text-zinc-500"
+          className={`${CHAMP} bg-page text-ink-muted`}
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Nom du produit
         <input
           type="text"
           required
           value={nomArticle}
           onChange={(event) => setNomArticle(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         />
       </label>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Catégorie
           <select
             value={categorie}
             onChange={(event) => setCategorie(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           >
             <option value="">—</option>
             {CATEGORIES.map((option) => (
@@ -110,12 +112,12 @@ export default function StockForm({
           </select>
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Unité
           <select
             value={unite}
             onChange={(event) => setUnite(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           >
             {UNITES.map((option) => (
               <option key={option} value={option}>
@@ -127,7 +129,7 @@ export default function StockForm({
       </div>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Prix d&apos;achat (FCFA)
           <input
             type="number"
@@ -135,11 +137,11 @@ export default function StockForm({
             step="any"
             value={prixAchat}
             onChange={(event) => setPrixAchat(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Prix de vente (FCFA)
           <input
             type="number"
@@ -147,13 +149,13 @@ export default function StockForm({
             step="any"
             value={prixVente}
             onChange={(event) => setPrixVente(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Stock initial
           <input
             type="number"
@@ -162,11 +164,11 @@ export default function StockForm({
             required
             value={quantite}
             onChange={(event) => setQuantite(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Stock minimum
           <input
             type="number"
@@ -175,17 +177,17 @@ export default function StockForm({
             required
             value={seuilAlerte}
             onChange={(event) => setSeuilAlerte(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Fournisseur
         <select
           value={fournisseurId}
           onChange={(event) => setFournisseurId(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         >
           <option value="">—</option>
           {fournisseurs.map((fournisseur) => (
@@ -196,17 +198,21 @@ export default function StockForm({
         </select>
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-impaye">{error}</p>}
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-accent px-3 py-3 font-medium text-white disabled:opacity-50"
         >
           {loading ? "Enregistrement..." : stock ? "Modifier" : "Ajouter"}
         </button>
-        <button type="button" onClick={onCancel} className="rounded border px-3 py-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-full rounded-xl bg-secondary px-3 py-3 font-medium text-ink"
+        >
           Annuler
         </button>
       </div>

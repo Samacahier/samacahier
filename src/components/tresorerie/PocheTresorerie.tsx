@@ -57,14 +57,14 @@ export default function PocheTresorerie({
         <button
           type="button"
           onClick={() => setModaleOuverte("entree")}
-          className="flex-1 rounded bg-black px-3 py-2 text-white"
+          className="flex-1 rounded bg-accent px-3 py-2 text-white"
         >
           Faire entrer
         </button>
         <button
           type="button"
           onClick={() => setModaleOuverte("sortie")}
-          className="flex-1 rounded border px-3 py-2"
+          className="flex-1 rounded bg-secondary px-3 py-2 text-ink"
         >
           Sortir
         </button>

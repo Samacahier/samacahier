@@ -13,6 +13,8 @@ type VenteFormProps = {
   onCancel: () => void;
 };
 
+const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
+
 const MODES_PAIEMENT = [
   { value: "especes", label: "Espèces" },
   { value: "mobile_money", label: "Mobile money" },
@@ -27,9 +29,9 @@ const STATUTS: { value: NonNullable<VenteFormInput["statut"]>; label: string }[]
 ];
 
 const STATUT_BADGE: Record<string, string> = {
-  paye: "bg-green-100 text-green-800",
-  credit: "bg-amber-100 text-amber-800",
-  impaye: "bg-red-100 text-red-800",
+  paye: "bg-status-paye-bg text-status-paye",
+  credit: "bg-status-credit-bg text-status-credit",
+  impaye: "bg-status-impaye-bg text-status-impaye",
 };
 
 export default function VenteForm({
@@ -114,13 +116,13 @@ export default function VenteForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
-      <label className="flex flex-col gap-1 text-sm">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Produit (facultatif — vente hors catalogue sinon)
         <select
           value={produitId}
           onChange={(event) => handleProduitChange(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         >
           <option value="">—</option>
           {produits.map((produit) => (
@@ -131,24 +133,24 @@ export default function VenteForm({
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Description
         <input
           type="text"
           required
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         />
       </label>
 
-      <div className="flex flex-col gap-1 text-sm">
+      <div className="flex flex-col gap-1 text-sm text-ink-muted">
         <span>Client</span>
         <div className="flex gap-2">
           <select
             value={clientId}
             onChange={(event) => setClientId(event.target.value)}
-            className="flex-1 rounded border px-3 py-2"
+            className={`flex-1 ${CHAMP}`}
           >
             <option value="">Client comptant</option>
             {clientsDisponibles.map((client) => (
@@ -160,7 +162,7 @@ export default function VenteForm({
           <button
             type="button"
             onClick={() => setAjoutClientOuvert((value) => !value)}
-            className="rounded border px-3 py-2"
+            className="rounded-xl bg-secondary px-3 py-2 font-medium text-ink"
             aria-label="Ajouter un client"
           >
             +
@@ -175,7 +177,7 @@ export default function VenteForm({
       </div>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Quantité
           <input
             type="number"
@@ -184,11 +186,11 @@ export default function VenteForm({
             required
             value={quantite}
             onChange={(event) => setQuantite(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Prix unitaire
           <input
             type="number"
@@ -197,11 +199,11 @@ export default function VenteForm({
             required
             value={prixUnitaire}
             onChange={(event) => setPrixUnitaire(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Remise
           <input
             type="number"
@@ -209,12 +211,12 @@ export default function VenteForm({
             step="any"
             value={remise}
             onChange={(event) => setRemise(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
-      <div className="flex flex-col gap-1 text-sm">
+      <div className="flex flex-col gap-1 text-sm text-ink-muted">
         <span>Statut de la vente</span>
         <div className="flex gap-2">
           {STATUTS.map((option) => (
@@ -222,8 +224,10 @@ export default function VenteForm({
               key={option.value}
               type="button"
               onClick={() => setStatut(option.value)}
-              className={`flex-1 rounded border px-3 py-2 ${
-                statut === option.value ? "border-black bg-black text-white" : ""
+              className={`flex-1 rounded-xl border px-3 py-2 ${
+                statut === option.value
+                  ? "border-accent bg-accent text-white"
+                  : "border-line text-ink"
               }`}
             >
               {option.label}
@@ -233,7 +237,7 @@ export default function VenteForm({
       </div>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Montant encaissé
           <input
             type="number"
@@ -242,11 +246,11 @@ export default function VenteForm({
             disabled={statut !== "credit"}
             value={statut === "credit" ? montantEncaisse : montantTotal}
             onChange={(event) => setMontantEncaisse(Number(event.target.value))}
-            className="rounded border px-3 py-2 disabled:bg-zinc-100 disabled:text-zinc-500"
+            className={`${CHAMP} disabled:bg-page disabled:text-ink-muted`}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Mode de paiement
           <select
             value={modePaiement}
@@ -255,7 +259,7 @@ export default function VenteForm({
                 event.target.value as NonNullable<VenteFormInput["mode_paiement"]>,
               )
             }
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           >
             {MODES_PAIEMENT.map((mode) => (
               <option key={mode.value} value={mode.value}>
@@ -266,39 +270,43 @@ export default function VenteForm({
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Date
         <input
           type="date"
           required
           value={dateVente}
           onChange={(event) => setDateVente(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         />
       </label>
 
-      <div className="flex items-center justify-between border-t pt-3">
+      <div className="flex items-center justify-between border-t border-line pt-3">
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUT_BADGE[statut]}`}
         >
           {STATUTS.find((option) => option.value === statut)?.label}
         </span>
-        <p className="text-lg font-semibold">
+        <p className="text-lg font-semibold text-ink">
           Total : {montantTotal.toLocaleString("fr-FR")}
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-impaye">{error}</p>}
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-accent px-3 py-3 font-medium text-white disabled:opacity-50"
         >
           {loading ? "Enregistrement..." : "Enregistrer la vente"}
         </button>
-        <button type="button" onClick={onCancel} className="rounded border px-3 py-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-full rounded-xl bg-secondary px-3 py-3 font-medium text-ink"
+        >
           Annuler
         </button>
       </div>

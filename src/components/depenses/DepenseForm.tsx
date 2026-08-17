@@ -15,6 +15,8 @@ type DepenseFormProps = {
   onCancel: () => void;
 };
 
+const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
+
 const SOURCES: { value: NonNullable<DepenseFormInput["source"]>; label: string }[] = [
   { value: "caisse", label: "Ma Caisse" },
   { value: "poche", label: "Ma Poche" },
@@ -77,20 +79,20 @@ export default function DepenseForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
-      <label className="flex flex-col gap-1 text-sm">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Description
         <input
           type="text"
           required
           value={libelle}
           onChange={(event) => setLibelle(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         />
       </label>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Montant
           <input
             type="number"
@@ -99,22 +101,22 @@ export default function DepenseForm({
             required
             value={montant}
             onChange={(event) => setMontant(Number(event.target.value))}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Catégorie
           <input
             type="text"
             value={categorie}
             onChange={(event) => setCategorie(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           />
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Source
         <div className="flex gap-2">
           {SOURCES.map((option) => (
@@ -122,8 +124,10 @@ export default function DepenseForm({
               key={option.value}
               type="button"
               onClick={() => setSource(option.value)}
-              className={`flex-1 rounded border px-3 py-2 ${
-                source === option.value ? "border-black bg-black text-white" : ""
+              className={`flex-1 rounded-xl border px-3 py-2 ${
+                source === option.value
+                  ? "border-accent bg-accent text-white"
+                  : "border-line text-ink"
               }`}
             >
               {option.label}
@@ -133,12 +137,12 @@ export default function DepenseForm({
       </label>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Mode de paiement
           <select
             value={modePaiement}
             onChange={(event) => setModePaiement(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           >
             {MODES_PAIEMENT.map((mode) => (
               <option key={mode.value} value={mode.value}>
@@ -148,12 +152,12 @@ export default function DepenseForm({
           </select>
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Fournisseur (facultatif)
           <select
             value={fournisseurId}
             onChange={(event) => setFournisseurId(event.target.value)}
-            className="rounded border px-3 py-2"
+            className={CHAMP}
           >
             <option value="">—</option>
             {fournisseurs.map((fournisseur) => (
@@ -165,28 +169,32 @@ export default function DepenseForm({
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="flex flex-col gap-1 text-sm text-ink-muted">
         Date
         <input
           type="date"
           required
           value={dateDepense}
           onChange={(event) => setDateDepense(event.target.value)}
-          className="rounded border px-3 py-2"
+          className={CHAMP}
         />
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-impaye">{error}</p>}
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-accent px-3 py-3 font-medium text-white disabled:opacity-50"
         >
           {loading ? "Enregistrement..." : depense ? "Modifier" : "Ajouter"}
         </button>
-        <button type="button" onClick={onCancel} className="rounded border px-3 py-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-full rounded-xl bg-secondary px-3 py-3 font-medium text-ink"
+        >
           Annuler
         </button>
       </div>

@@ -26,11 +26,11 @@ export default function BottomNav() {
     <>
       {plusOuvert && (
         <div
-          className="fixed inset-0 z-40 bg-black/30"
+          className="fixed inset-0 z-40 bg-ink/30"
           onClick={() => setPlusOuvert(false)}
         >
           <div
-            className="absolute right-0 bottom-16 left-0 mx-4 rounded-t-2xl bg-white p-4 text-black sm:right-4 sm:left-auto sm:w-56 sm:rounded-2xl"
+            className="absolute right-0 bottom-16 left-0 mx-4 rounded-t-2xl bg-card p-4 text-ink sm:right-4 sm:left-auto sm:w-56 sm:rounded-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <ul className="flex flex-col gap-1">
@@ -39,7 +39,7 @@ export default function BottomNav() {
                   <Link
                     href={lien.href}
                     onClick={() => setPlusOuvert(false)}
-                    className="block rounded px-3 py-2 text-sm hover:bg-zinc-100"
+                    className="block rounded px-3 py-2 text-sm hover:bg-page"
                   >
                     {lien.label}
                   </Link>
@@ -50,13 +50,13 @@ export default function BottomNav() {
         </div>
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 flex border-t bg-white text-black">
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex border-t border-line bg-card text-ink">
         {LIENS_PRINCIPAUX.map((lien) => (
           <Link
             key={lien.href}
             href={lien.href}
             className={`flex-1 py-3 text-center text-xs ${
-              pathname === lien.href ? "font-semibold" : "text-zinc-500"
+              pathname === lien.href ? "font-semibold text-accent" : "text-ink-muted"
             }`}
           >
             {lien.label}
@@ -66,7 +66,7 @@ export default function BottomNav() {
           type="button"
           onClick={() => setPlusOuvert((value) => !value)}
           className={`flex-1 py-3 text-center text-xs ${
-            plusOuvert ? "font-semibold" : "text-zinc-500"
+            plusOuvert ? "font-semibold text-accent" : "text-ink-muted"
           }`}
         >
           Plus

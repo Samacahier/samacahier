@@ -5,7 +5,7 @@ export default function PrintButton() {
     <button
       type="button"
       onClick={() => window.print()}
-      className="rounded bg-black px-3 py-2 text-white"
+      className="rounded bg-accent px-3 py-2 text-white"
     >
       Imprimer / Enregistrer en PDF
     </button>
