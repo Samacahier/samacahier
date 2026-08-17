@@ -42,14 +42,25 @@ export default async function DashboardPage() {
   const devise = commercant?.devise ?? "FCFA";
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8">
-      <HeroSoldeCard
-        devise={devise}
-        soldeCaisse={stats.soldeCaisse}
-        soldePoche={stats.soldePoche}
-      />
+    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8 lg:max-w-[1200px] lg:gap-6 lg:px-10 lg:py-10">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[2fr_1fr] lg:items-start lg:gap-6">
+        <HeroSoldeCard
+          devise={devise}
+          soldeCaisse={stats.soldeCaisse}
+          soldePoche={stats.soldePoche}
+        />
 
-      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
+          <AlerteStockBanner produits={stats.produitsEnAlerte} />
+          <DashboardQuickActions
+            produits={produits}
+            clients={clients}
+            fournisseurs={fournisseurs}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Chiffre d'affaires"
           value={`${stats.chiffreAffaires.toLocaleString("fr-FR")} ${devise}`}
@@ -68,14 +79,6 @@ export default async function DashboardPage() {
           value={`${stats.totalDepenses.toLocaleString("fr-FR")} ${devise}`}
         />
       </div>
-
-      <AlerteStockBanner produits={stats.produitsEnAlerte} />
-
-      <DashboardQuickActions
-        produits={produits}
-        clients={clients}
-        fournisseurs={fournisseurs}
-      />
 
       <DernieresOperations operations={operations} />
     </main>

@@ -67,11 +67,11 @@ export default function ClientList({ clients }: ClientListProps) {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={client.id} className="border-b border-line">
+                  <tr key={client.id} className="group border-b border-line">
                     <td className="py-2">{client.nom}</td>
                     <td className="py-2">{client.telephone ?? "—"}</td>
                     <td className="py-2">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
                         <button
                           type="button"
                           onClick={() => setEditingId(client.id)}

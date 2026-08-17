@@ -67,7 +67,7 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
     : [RAPPORT_VIDE, APERCU_VIDE, STATUTS_VIDE];
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 lg:max-w-[1200px] lg:px-10 lg:py-10">
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-semibold text-ink">Rapport</h1>
         <PrintButton />
@@ -107,7 +107,7 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
           Période du {debut} au {fin}
         </p>
 
-        <dl className="grid grid-cols-2 gap-6">
+        <dl className="grid grid-cols-2 gap-6 lg:grid-cols-4">
           <div>
             <dt className="text-sm text-ink-muted">Total ventes</dt>
             <dd className="text-xl font-semibold">

@@ -76,7 +76,7 @@ export default function CreanceList({ creances }: CreanceListProps) {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={creance.id} className="border-b border-line">
+                  <tr key={creance.id} className="group border-b border-line">
                     <td className="py-2">{creance.client_nom}</td>
                     <td className="py-2">{creance.montant.toLocaleString("fr-FR")}</td>
                     <td className="py-2">
@@ -85,7 +85,7 @@ export default function CreanceList({ creances }: CreanceListProps) {
                     <td className="py-2">{STATUT_LABELS[creance.statut]}</td>
                     <td className="py-2">{creance.date_echeance ?? "—"}</td>
                     <td className="py-2">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
                         <button
                           type="button"
                           onClick={() => setEditingId(creance.id)}

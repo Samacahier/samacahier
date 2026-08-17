@@ -26,7 +26,7 @@ export default function BottomNav() {
     <>
       {plusOuvert && (
         <div
-          className="fixed inset-0 z-40 bg-ink/30"
+          className="fixed inset-0 z-40 bg-ink/30 lg:hidden"
           onClick={() => setPlusOuvert(false)}
         >
           <div
@@ -50,7 +50,7 @@ export default function BottomNav() {
         </div>
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 flex border-t border-line bg-card text-ink">
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex border-t border-line bg-card text-ink lg:hidden">
         {LIENS_PRINCIPAUX.map((lien) => (
           <Link
             key={lien.href}

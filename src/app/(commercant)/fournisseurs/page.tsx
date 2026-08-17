@@ -11,7 +11,7 @@ export default async function FournisseursPage() {
   const fournisseurs = user ? await listFournisseurs(user.id) : [];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-8 lg:max-w-[1200px] lg:px-10 lg:py-10">
       <FournisseurList fournisseurs={fournisseurs} />
     </main>
   );

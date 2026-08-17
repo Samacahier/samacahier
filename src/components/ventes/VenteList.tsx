@@ -93,7 +93,7 @@ export default function VenteList({ ventes, produits, clients }: VenteListProps)
             </thead>
             <tbody>
               {ventes.map((vente) => (
-                <tr key={vente.id} className="border-b border-line">
+                <tr key={vente.id} className="group border-b border-line">
                   <td className="py-2">{vente.date_vente}</td>
                   <td className="py-2">{vente.description}</td>
                   <td className="py-2">{vente.quantite}</td>
@@ -106,7 +106,7 @@ export default function VenteList({ ventes, produits, clients }: VenteListProps)
                     </span>
                   </td>
                   <td className="py-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
                       <Link
                         href={`/ventes/${vente.id}/recu`}
                         target="_blank"

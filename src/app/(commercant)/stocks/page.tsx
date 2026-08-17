@@ -14,7 +14,7 @@ export default async function StocksPage() {
     : [[], []];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-8 lg:max-w-[1200px] lg:px-10 lg:py-10">
       <StockList stocks={stocks} fournisseurs={fournisseurs} />
     </main>
   );

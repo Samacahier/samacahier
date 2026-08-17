@@ -16,7 +16,7 @@ export default function ApercuGlobalSection({
       <p className="mb-4 text-xs font-medium tracking-wide text-ink-muted uppercase">
         Aperçu global (depuis le début)
       </p>
-      <dl className="grid grid-cols-2 gap-4">
+      <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div>
           <dt className="text-sm text-ink-muted">Chiffre d&apos;affaires</dt>
           <dd className="text-xl font-semibold">

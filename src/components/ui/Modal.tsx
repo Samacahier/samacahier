@@ -10,9 +10,9 @@ type ModalProps = {
 
 export default function Modal({ title, onClose, children }: ModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 sm:items-center">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-card p-6 text-ink sm:rounded-2xl">
-        <div className="mb-2 flex justify-center sm:hidden">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 lg:items-center">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-card p-6 text-ink lg:rounded-2xl">
+        <div className="mb-2 flex justify-center lg:hidden">
           <span className="h-1.5 w-12 rounded-full bg-line" />
         </div>
         <div className="mb-4 flex items-center justify-between">

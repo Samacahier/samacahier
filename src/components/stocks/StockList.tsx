@@ -83,7 +83,7 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
             </thead>
             <tbody>
               {stocks.map((stock) => (
-                <tr key={stock.id} className="border-b border-line">
+                <tr key={stock.id} className="group border-b border-line">
                   <td className="py-2 text-ink-muted">{stock.code_produit}</td>
                   <td className="py-2">{stock.nom_article}</td>
                   <td className="py-2">{stock.categorie ?? "—"}</td>
@@ -105,7 +105,7 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
                   </td>
                   <td className="py-2">{nomFournisseur(stock.fournisseur_id)}</td>
                   <td className="py-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
                       <button
                         type="button"
                         onClick={() => setEditingId(stock.id)}

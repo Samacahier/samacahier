@@ -86,7 +86,7 @@ export default function DepenseList({ depenses, fournisseurs }: DepenseListProps
             </thead>
             <tbody>
               {depenses.map((depense) => (
-                <tr key={depense.id} className="border-b border-line">
+                <tr key={depense.id} className="group border-b border-line">
                   <td className="py-2">{depense.date_depense}</td>
                   <td className="py-2">{depense.libelle}</td>
                   <td className="py-2">{depense.categorie ?? "—"}</td>
@@ -94,7 +94,7 @@ export default function DepenseList({ depenses, fournisseurs }: DepenseListProps
                   <td className="py-2">{nomFournisseur(depense.fournisseur_id)}</td>
                   <td className="py-2">{depense.montant.toLocaleString("fr-FR")}</td>
                   <td className="py-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
                       <button
                         type="button"
                         onClick={() => setEditingId(depense.id)}
