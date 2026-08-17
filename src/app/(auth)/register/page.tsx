@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function RegisterPage() {
   const router = useRouter();
   const [nom, setNom] = useState("");
+  const [nomCommerce, setNomCommerce] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +26,9 @@ export default function RegisterPage() {
       email,
       password,
       options: {
-        // Lu par le trigger handle_new_user() pour créer le profil
-        // (rôle commercant par défaut, cf. supabase/migrations).
-        data: { nom, role: "commercant" },
+        // Lu par le trigger handle_new_user() pour créer le profil et la
+        // ligne commercants (rôle commercant par défaut, cf. supabase/migrations).
+        data: { nom, nom_commerce: nomCommerce, role: "commercant" },
       },
     });
 
@@ -59,6 +60,17 @@ export default function RegisterPage() {
             required
             value={nom}
             onChange={(event) => setNom(event.target.value)}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm">
+          Nom du commerce
+          <input
+            type="text"
+            required
+            value={nomCommerce}
+            onChange={(event) => setNomCommerce(event.target.value)}
             className="rounded border px-3 py-2"
           />
         </label>
