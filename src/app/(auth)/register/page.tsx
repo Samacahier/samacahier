@@ -100,7 +100,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4 py-8">
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 bg-page px-4 py-8 text-ink">
       <h1 className="text-2xl font-semibold">Créer mon espace</h1>
 
       <RegisterProgress step={step} />
@@ -124,11 +124,11 @@ export default function RegisterPage() {
         />
       )}
 
-      {info && <p className="text-sm text-green-700">{info}</p>}
+      {info && <p className="text-sm text-status-paye">{info}</p>}
 
       <p className="text-sm">
         Déjà un compte ?{" "}
-        <Link href="/login" className="underline">
+        <Link href="/login" className="text-accent underline">
           Se connecter
         </Link>
       </p>

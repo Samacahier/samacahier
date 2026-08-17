@@ -13,8 +13,10 @@ export default function RegisterProgress({ step }: RegisterProgressProps) {
 
         return (
           <li key={etape} className="flex flex-1 flex-col gap-1">
-            <div className={`h-1 rounded-full ${franchie ? "bg-black" : "bg-zinc-200"}`} />
-            <span className={`text-xs ${numero === step ? "font-semibold" : "text-zinc-500"}`}>
+            <div className={`h-1 rounded-full ${franchie ? "bg-accent" : "bg-line"}`} />
+            <span
+              className={`text-xs ${numero === step ? "font-semibold text-ink" : "text-ink-muted"}`}
+            >
               {numero}. {etape}
             </span>
           </li>

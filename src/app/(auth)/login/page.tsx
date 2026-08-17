@@ -40,38 +40,38 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 bg-page px-4 text-ink">
       <h1 className="text-2xl font-semibold">Connexion</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Email
           <input
             type="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="rounded border px-3 py-2"
+            className="rounded-xl border border-line bg-card px-3 py-2 text-ink"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Mot de passe
           <input
             type="password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="rounded border px-3 py-2"
+            className="rounded-xl border border-line bg-card px-3 py-2 text-ink"
           />
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-status-impaye">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="rounded-xl bg-accent px-3 py-2 font-medium text-white disabled:opacity-50"
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
       <p className="text-sm">
         Pas encore de compte ?{" "}
-        <Link href="/register" className="underline">
+        <Link href="/register" className="text-accent underline">
           Créer un compte
         </Link>
       </p>
