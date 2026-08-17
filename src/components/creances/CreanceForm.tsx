@@ -1,0 +1,164 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import {
+  createCreance,
+  updateCreance,
+  type CreanceFormInput,
+} from "@/lib/creances/queries";
+import type { Creance } from "@/types/database";
+
+type CreanceFormProps = {
+  creance?: Creance;
+  onSuccess: () => void;
+  onCancel: () => void;
+};
+
+const STATUTS = [
+  { value: "en_cours", label: "En cours" },
+  { value: "soldee", label: "Soldée" },
+  { value: "en_retard", label: "En retard" },
+] as const;
+
+export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFormProps) {
+  const [clientNom, setClientNom] = useState(creance?.client_nom ?? "");
+  const [clientTelephone, setClientTelephone] = useState(
+    creance?.client_telephone ?? "",
+  );
+  const [montant, setMontant] = useState(creance?.montant ?? 0);
+  const [montantRembourse, setMontantRembourse] = useState(
+    creance?.montant_rembourse ?? 0,
+  );
+  const [statut, setStatut] = useState<CreanceFormInput["statut"]>(
+    creance?.statut ?? "en_cours",
+  );
+  const [dateEcheance, setDateEcheance] = useState(creance?.date_echeance ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const input: CreanceFormInput = {
+      client_nom: clientNom,
+      client_telephone: clientTelephone || null,
+      montant,
+      montant_rembourse: montantRembourse,
+      statut,
+      date_echeance: dateEcheance || null,
+    };
+
+    const result = creance
+      ? await updateCreance(creance.id, input)
+      : await createCreance(input);
+
+    setLoading(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    onSuccess();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border p-4">
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Client
+          <input
+            type="text"
+            required
+            value={clientNom}
+            onChange={(event) => setClientNom(event.target.value)}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Téléphone
+          <input
+            type="tel"
+            value={clientTelephone}
+            onChange={(event) => setClientTelephone(event.target.value)}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+      </div>
+
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Montant dû (FCFA)
+          <input
+            type="number"
+            min={0}
+            step="any"
+            required
+            value={montant}
+            onChange={(event) => setMontant(Number(event.target.value))}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Montant remboursé (FCFA)
+          <input
+            type="number"
+            min={0}
+            step="any"
+            value={montantRembourse}
+            onChange={(event) => setMontantRembourse(Number(event.target.value))}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+      </div>
+
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Statut
+          <select
+            value={statut}
+            onChange={(event) =>
+              setStatut(event.target.value as CreanceFormInput["statut"])
+            }
+            className="rounded border px-3 py-2"
+          >
+            {STATUTS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          Échéance
+          <input
+            type="date"
+            value={dateEcheance}
+            onChange={(event) => setDateEcheance(event.target.value)}
+            className="rounded border px-3 py-2"
+          />
+        </label>
+      </div>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={loading}
+          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+        >
+          {loading ? "Enregistrement..." : creance ? "Modifier" : "Ajouter"}
+        </button>
+        <button type="button" onClick={onCancel} className="rounded border px-3 py-2">
+          Annuler
+        </button>
+      </div>
+    </form>
+  );
+}
