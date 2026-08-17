@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AuthShell from "@/components/auth/AuthShell";
 import RegisterProgress from "@/components/auth/RegisterProgress";
 import RegisterAccountStep from "@/components/auth/RegisterAccountStep";
 import RegisterCommerceStep from "@/components/auth/RegisterCommerceStep";
@@ -11,6 +12,30 @@ import {
   INITIAL_REGISTER_STATE,
   type RegisterFormState,
 } from "@/components/auth/registerFormState";
+
+const COPIE_ETAPE = {
+  1: {
+    eyebrow: "Étape 1 sur 2",
+    titre: "Créer votre compte",
+    sousTitre: "Votre compte permet de retrouver votre commerce et vos données.",
+    brandTitre: "Deux minutes pour commencer.",
+    brandBullets: [
+      { mark: "1", texte: "Créez votre compte" },
+      { mark: "2", texte: "Configurez votre commerce" },
+      { mark: "✓", texte: "C'est prêt — gratuit pour démarrer" },
+    ],
+  },
+  2: {
+    eyebrow: "Étape 2 sur 2",
+    titre: "Configurez votre commerce",
+    sousTitre: "Ces informations seront utilisées sur vos reçus et rapports.",
+    brandTitre: "Dernière étape.",
+    brandBullets: [
+      { mark: "✓", texte: "Compte créé" },
+      { mark: "2", texte: "Ces infos apparaîtront sur vos reçus et rapports" },
+    ],
+  },
+} as const;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -99,12 +124,25 @@ export default function RegisterPage() {
     setLoading(false);
   }
 
+  const copie = COPIE_ETAPE[step];
+
   return (
-    <main className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Créer mon espace</h1>
-
-      <RegisterProgress step={step} />
-
+    <AuthShell
+      eyebrow={copie.eyebrow}
+      titre={copie.titre}
+      sousTitre={copie.sousTitre}
+      brandTitre={copie.brandTitre}
+      brandBullets={[...copie.brandBullets]}
+      progress={<RegisterProgress step={step} />}
+      footer={
+        <>
+          Déjà un compte ?{" "}
+          <Link href="/login" className="font-semibold text-accent-dark underline">
+            Se connecter
+          </Link>
+        </>
+      }
+    >
       {step === 1 ? (
         <RegisterAccountStep
           values={values}
@@ -124,14 +162,7 @@ export default function RegisterPage() {
         />
       )}
 
-      {info && <p className="text-sm text-status-paye">{info}</p>}
-
-      <p className="text-sm">
-        Déjà un compte ?{" "}
-        <Link href="/login" className="text-accent underline">
-          Se connecter
-        </Link>
-      </p>
-    </main>
+      {info && <p className="mt-4 text-sm text-status-paye">{info}</p>}
+    </AuthShell>
   );
 }

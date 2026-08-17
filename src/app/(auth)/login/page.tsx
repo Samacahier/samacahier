@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AuthShell from "@/components/auth/AuthShell";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,9 +41,25 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Connexion</h1>
-
+    <AuthShell
+      eyebrow="Content de vous revoir"
+      titre="Connexion"
+      sousTitre="Retrouvez votre commerce et vos données."
+      brandTitre="Le cahier de votre commerce ne se perd plus."
+      brandBullets={[
+        { mark: "✓", texte: "Vos ventes, dépenses et stock, au même endroit" },
+        { mark: "✓", texte: "Vos données réservées à votre commerce" },
+        { mark: "✓", texte: "Accessible depuis n'importe quel téléphone" },
+      ]}
+      footer={
+        <>
+          Pas encore de compte ?{" "}
+          <Link href="/register" className="font-semibold text-accent-dark underline">
+            Créer un compte
+          </Link>
+        </>
+      }
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Email
@@ -76,13 +93,6 @@ export default function LoginPage() {
           {loading ? "Connexion..." : "Se connecter"}
         </button>
       </form>
-
-      <p className="text-sm">
-        Pas encore de compte ?{" "}
-        <Link href="/register" className="text-accent underline">
-          Créer un compte
-        </Link>
-      </p>
-    </main>
+    </AuthShell>
   );
 }
