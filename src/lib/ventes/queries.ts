@@ -6,6 +6,7 @@ import type { Database, Vente } from "@/types/database";
 
 type VenteInsert = Database["public"]["Tables"]["ventes"]["Insert"];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type ProduitVendu = { produit_id: string | null; quantite: number };
 
 export type VenteFormInput = Omit<
   VenteInsert,
@@ -112,6 +113,49 @@ async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente) 
   }
 }
 
+// Applique un delta de quantité sur un produit du catalogue. Le stock peut
+// devenir négatif (aucun blocage) : l'alerte de seuil existante suffit.
+async function ajusterQuantiteStock(
+  supabase: SupabaseServerClient,
+  produitId: string,
+  delta: number,
+) {
+  const { data: produit } = await supabase
+    .from("stocks")
+    .select("quantite")
+    .eq("id", produitId)
+    .single();
+
+  if (!produit) return;
+
+  await supabase
+    .from("stocks")
+    .update({
+      quantite: produit.quantite + delta,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", produitId);
+}
+
+// Une vente liée à un produit du catalogue déduit sa quantité du stock. Pas
+// de déduction pour une vente hors catalogue (produit_id nul). `avant` est
+// l'état précédent de la vente (null à la création) : sa quantité est
+// remise en stock avant d'appliquer la nouvelle déduction, pour que les
+// éditions successives (changement de produit ou de quantité) restent
+// justes sans double comptage.
+async function syncStockForVente(
+  supabase: SupabaseServerClient,
+  avant: ProduitVendu | null,
+  apres: ProduitVendu | null,
+) {
+  if (avant?.produit_id) {
+    await ajusterQuantiteStock(supabase, avant.produit_id, avant.quantite);
+  }
+  if (apres?.produit_id) {
+    await ajusterQuantiteStock(supabase, apres.produit_id, -apres.quantite);
+  }
+}
+
 export async function createVente(input: VenteFormInput) {
   const supabase = await createClient();
   const {
@@ -130,14 +174,23 @@ export async function createVente(input: VenteFormInput) {
 
   await syncCreanceForVente(supabase, vente);
   await syncCaisseForVente(supabase, vente);
+  await syncStockForVente(supabase, null, vente);
 
   revalidatePath("/ventes");
   revalidatePath("/caisse");
+  revalidatePath("/stocks");
   return { error: null };
 }
 
 export async function updateVente(id: string, input: Partial<VenteFormInput>) {
   const supabase = await createClient();
+
+  const { data: avant } = await supabase
+    .from("ventes")
+    .select("produit_id, quantite")
+    .eq("id", id)
+    .single();
+
   const { data: vente, error } = await supabase
     .from("ventes")
     .update(input)
@@ -149,19 +202,30 @@ export async function updateVente(id: string, input: Partial<VenteFormInput>) {
 
   await syncCreanceForVente(supabase, vente);
   await syncCaisseForVente(supabase, vente);
+  await syncStockForVente(supabase, avant, vente);
 
   revalidatePath("/ventes");
   revalidatePath("/caisse");
+  revalidatePath("/stocks");
   return { error: null };
 }
 
 export async function deleteVente(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("ventes").delete().eq("id", id);
+
+  const { data: vente, error } = await supabase
+    .from("ventes")
+    .delete()
+    .eq("id", id)
+    .select("produit_id, quantite")
+    .single();
 
   if (error) return { error: error.message };
 
+  await syncStockForVente(supabase, vente, null);
+
   revalidatePath("/ventes");
   revalidatePath("/caisse");
+  revalidatePath("/stocks");
   return { error: null };
 }
