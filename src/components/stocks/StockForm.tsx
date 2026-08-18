@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createStock, updateStock, type StockFormInput } from "@/lib/stocks/queries";
+import NumberField from "@/components/ui/NumberField";
 import type { Fournisseur, Stock } from "@/types/database";
 
 type StockFormProps = {
@@ -131,54 +132,24 @@ export default function StockForm({
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Prix d&apos;achat (FCFA)
-          <input
-            type="number"
-            min={0}
-            step="any"
-            value={prixAchat}
-            onChange={(event) => setPrixAchat(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} value={prixAchat} onChange={setPrixAchat} className={CHAMP} />
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Prix de vente (FCFA)
-          <input
-            type="number"
-            min={0}
-            step="any"
-            value={prixVente}
-            onChange={(event) => setPrixVente(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} value={prixVente} onChange={setPrixVente} className={CHAMP} />
         </label>
       </div>
 
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Stock initial
-          <input
-            type="number"
-            min={0}
-            step="any"
-            required
-            value={quantite}
-            onChange={(event) => setQuantite(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} required value={quantite} onChange={setQuantite} className={CHAMP} />
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Stock minimum
-          <input
-            type="number"
-            min={0}
-            step="any"
-            required
-            value={seuilAlerte}
-            onChange={(event) => setSeuilAlerte(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} required value={seuilAlerte} onChange={setSeuilAlerte} className={CHAMP} />
         </label>
       </div>
 

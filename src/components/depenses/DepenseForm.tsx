@@ -6,6 +6,7 @@ import {
   updateDepense,
   type DepenseFormInput,
 } from "@/lib/depenses/queries";
+import NumberField from "@/components/ui/NumberField";
 import type { Depense, Fournisseur } from "@/types/database";
 
 type DepenseFormProps = {
@@ -94,15 +95,7 @@ export default function DepenseForm({
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Montant
-          <input
-            type="number"
-            min={0}
-            step="any"
-            required
-            value={montant}
-            onChange={(event) => setMontant(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} required value={montant} onChange={setMontant} className={CHAMP} />
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createVente, updateVente, type VenteFormInput } from "@/lib/ventes/queries";
+import NumberField from "@/components/ui/NumberField";
 import AjoutClientRapide from "./AjoutClientRapide";
 import type { Client, Stock, Vente } from "@/types/database";
 
@@ -179,40 +180,17 @@ export default function VenteForm({
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Quantité
-          <input
-            type="number"
-            min={0}
-            step="any"
-            required
-            value={quantite}
-            onChange={(event) => setQuantite(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} required value={quantite} onChange={setQuantite} className={CHAMP} />
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Prix unitaire
-          <input
-            type="number"
-            min={0}
-            step="any"
-            required
-            value={prixUnitaire}
-            onChange={(event) => setPrixUnitaire(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} required value={prixUnitaire} onChange={setPrixUnitaire} className={CHAMP} />
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Remise
-          <input
-            type="number"
-            min={0}
-            step="any"
-            value={remise}
-            onChange={(event) => setRemise(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} value={remise} onChange={setRemise} className={CHAMP} />
         </label>
       </div>
 
@@ -239,13 +217,11 @@ export default function VenteForm({
       <div className="flex gap-3">
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
           Montant encaissé
-          <input
-            type="number"
+          <NumberField
             min={0}
-            step="any"
             disabled={statut !== "credit"}
             value={statut === "credit" ? montantEncaisse : montantTotal}
-            onChange={(event) => setMontantEncaisse(Number(event.target.value))}
+            onChange={setMontantEncaisse}
             className={`${CHAMP} disabled:bg-page disabled:text-ink-muted`}
           />
         </label>

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Modal from "@/components/ui/Modal";
+import NumberField from "@/components/ui/NumberField";
 import { createMouvement } from "@/lib/caisse/queries";
 import type { Caisse } from "@/types/database";
 
@@ -63,15 +64,7 @@ export default function MouvementModal({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Montant
-          <input
-            type="number"
-            min={0}
-            step="any"
-            required
-            value={montant}
-            onChange={(event) => setMontant(Number(event.target.value))}
-            className={CHAMP}
-          />
+          <NumberField min={0} required value={montant} onChange={setMontant} className={CHAMP} />
         </label>
 
         <label className="flex flex-col gap-1 text-sm text-ink-muted">
