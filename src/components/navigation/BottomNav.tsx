@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, ShoppingCart, Wallet, Package, MoreHorizontal, type LucideIcon } from "lucide-react";
 
-const LIENS_PRINCIPAUX = [
-  { href: "/dashboard", label: "Accueil" },
-  { href: "/ventes", label: "Vente" },
-  { href: "/depenses", label: "Dépenses" },
-  { href: "/stocks", label: "Stock" },
+const LIENS_PRINCIPAUX: { href: string; label: string; Icone: LucideIcon }[] = [
+  { href: "/dashboard", label: "Accueil", Icone: Home },
+  { href: "/ventes", label: "Vente", Icone: ShoppingCart },
+  { href: "/depenses", label: "Dépenses", Icone: Wallet },
+  { href: "/stocks", label: "Stock", Icone: Package },
 ];
 
 const LIENS_PLUS = [
@@ -55,20 +56,22 @@ export default function BottomNav() {
           <Link
             key={lien.href}
             href={lien.href}
-            className={`flex-1 py-3 text-center text-xs ${
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-center text-sm ${
               pathname === lien.href ? "font-semibold text-accent" : "text-ink-muted"
             }`}
           >
+            <lien.Icone className="h-5 w-5" />
             {lien.label}
           </Link>
         ))}
         <button
           type="button"
           onClick={() => setPlusOuvert((value) => !value)}
-          className={`flex-1 py-3 text-center text-xs ${
+          className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-center text-sm ${
             plusOuvert ? "font-semibold text-accent" : "text-ink-muted"
           }`}
         >
+          <MoreHorizontal className="h-5 w-5" />
           Plus
         </button>
       </nav>
