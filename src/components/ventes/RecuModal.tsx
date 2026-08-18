@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Modal from "@/components/ui/Modal";
 import RecuContent, { type RecuData } from "./RecuContent";
 
 type RecuModalProps = {
@@ -10,8 +11,12 @@ type RecuModalProps = {
 };
 
 const BOUTON_NEUTRE =
-  "rounded-lg border border-line bg-white px-3 py-1.5 text-sm font-medium text-ink whitespace-nowrap";
+  "flex-1 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink whitespace-nowrap";
 
+// Réutilise le composant Modal partagé (même bottom-sheet mobile / centrage
+// desktop que VenteForm, DepenseForm, etc.) — les boutons d'action vivent
+// dans le corps scrollable, juste au-dessus du reçu, donc ancrés dans la
+// modale et jamais détachés.
 export default function RecuModal({ data, venteId, onClose }: RecuModalProps) {
   const [copie, setCopie] = useState(false);
 
@@ -33,35 +38,31 @@ export default function RecuModal({ data, venteId, onClose }: RecuModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 lg:items-center">
-      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl bg-page text-ink lg:rounded-2xl">
-        <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 px-6 py-4 print:hidden">
-          <h2 className="text-lg font-semibold whitespace-nowrap">Prévisualisation du reçu</h2>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={onClose} className={BOUTON_NEUTRE}>
-              Fermer
-            </button>
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium whitespace-nowrap text-white"
-            >
-              Imprimer
-            </button>
-            <button type="button" onClick={() => window.print()} className={BOUTON_NEUTRE}>
-              Enregistrer en PDF
-            </button>
-            <button type="button" onClick={handlePartager} className={BOUTON_NEUTRE}>
-              {copie ? "Lien copié !" : "Partager"}
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-y-auto px-6 pb-6">
-          <RecuContent {...data} />
+    <Modal title="Prévisualisation du reçu" onClose={onClose}>
+      <div className="flex flex-col gap-4 print:hidden">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={onClose} className={BOUTON_NEUTRE}>
+            Fermer
+          </button>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="flex-1 rounded-lg bg-accent px-3 py-2 text-sm font-medium whitespace-nowrap text-white"
+          >
+            Imprimer
+          </button>
+          <button type="button" onClick={() => window.print()} className={BOUTON_NEUTRE}>
+            Enregistrer en PDF
+          </button>
+          <button type="button" onClick={handlePartager} className={BOUTON_NEUTRE}>
+            {copie ? "Lien copié !" : "Partager"}
+          </button>
         </div>
       </div>
-    </div>
+
+      <div className="mt-4">
+        <RecuContent {...data} />
+      </div>
+    </Modal>
   );
 }

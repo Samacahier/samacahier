@@ -28,7 +28,12 @@ export default function Modal({ title, onClose, children }: ModalProps) {
             </button>
           </div>
         </div>
-        <div className="overflow-y-auto px-6 pb-6">{children}</div>
+        <div
+          className="overflow-y-auto px-6 pb-6"
+          style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
