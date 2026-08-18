@@ -51,6 +51,7 @@ export type Database = {
           devise: string;
           solde_initial_caisse: number;
           solde_initial_poche: number;
+          actif: boolean;
         };
         Insert: {
           id: string;
@@ -68,6 +69,7 @@ export type Database = {
           devise?: string;
           solde_initial_caisse?: number;
           solde_initial_poche?: number;
+          actif?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["commercants"]["Insert"]>;
         Relationships: [];

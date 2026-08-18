@@ -43,6 +43,19 @@ export default function LoginPage() {
       return;
     }
 
+    const { data: commercant } = await supabase
+      .from("commercants")
+      .select("actif")
+      .eq("id", data.user.id)
+      .single();
+
+    if (commercant && !commercant.actif) {
+      await supabase.auth.signOut();
+      setError("Ce compte a été désactivé. Contactez l'administrateur.");
+      setLoading(false);
+      return;
+    }
+
     router.push("/dashboard");
     router.refresh();
   }
