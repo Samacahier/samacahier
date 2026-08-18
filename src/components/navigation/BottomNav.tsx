@@ -3,7 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ShoppingCart, Wallet, Package, MoreHorizontal, type LucideIcon } from "lucide-react";
+import {
+  Home,
+  ShoppingCart,
+  Wallet,
+  Package,
+  Landmark,
+  Users,
+  Truck,
+  BarChart3,
+  MoreHorizontal,
+  type LucideIcon,
+} from "lucide-react";
 
 const LIENS_PRINCIPAUX: { href: string; label: string; Icone: LucideIcon }[] = [
   { href: "/dashboard", label: "Accueil", Icone: Home },
@@ -12,11 +23,11 @@ const LIENS_PRINCIPAUX: { href: string; label: string; Icone: LucideIcon }[] = [
   { href: "/stocks", label: "Stock", Icone: Package },
 ];
 
-const LIENS_PLUS = [
-  { href: "/caisse", label: "Trésorerie" },
-  { href: "/clients", label: "Clients" },
-  { href: "/fournisseurs", label: "Fournisseurs" },
-  { href: "/rapports", label: "Rapports" },
+const LIENS_PLUS: { href: string; label: string; Icone: LucideIcon }[] = [
+  { href: "/caisse", label: "Trésorerie", Icone: Landmark },
+  { href: "/clients", label: "Clients", Icone: Users },
+  { href: "/fournisseurs", label: "Fournisseurs", Icone: Truck },
+  { href: "/rapports", label: "Rapports", Icone: BarChart3 },
 ];
 
 export default function BottomNav() {
@@ -40,8 +51,9 @@ export default function BottomNav() {
                   <Link
                     href={lien.href}
                     onClick={() => setPlusOuvert(false)}
-                    className="block rounded px-3 py-2 text-sm hover:bg-page"
+                    className="flex items-center gap-3 rounded px-3 py-2 text-sm hover:bg-page"
                   >
+                    <lien.Icone className="h-4 w-4 shrink-0" />
                     {lien.label}
                   </Link>
                 </li>

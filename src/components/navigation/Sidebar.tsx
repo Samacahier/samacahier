@@ -3,16 +3,27 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  Home,
+  ShoppingCart,
+  Wallet,
+  Package,
+  Landmark,
+  Users,
+  Truck,
+  BarChart3,
+  type LucideIcon,
+} from "lucide-react";
 
-const LIENS = [
-  { href: "/dashboard", label: "Accueil" },
-  { href: "/ventes", label: "Ventes" },
-  { href: "/depenses", label: "Dépenses" },
-  { href: "/stocks", label: "Stock" },
-  { href: "/caisse", label: "Trésorerie" },
-  { href: "/clients", label: "Clients" },
-  { href: "/fournisseurs", label: "Fournisseurs" },
-  { href: "/rapports", label: "Rapports" },
+const LIENS: { href: string; label: string; Icone: LucideIcon }[] = [
+  { href: "/dashboard", label: "Accueil", Icone: Home },
+  { href: "/ventes", label: "Ventes", Icone: ShoppingCart },
+  { href: "/depenses", label: "Dépenses", Icone: Wallet },
+  { href: "/stocks", label: "Stock", Icone: Package },
+  { href: "/caisse", label: "Trésorerie", Icone: Landmark },
+  { href: "/clients", label: "Clients", Icone: Users },
+  { href: "/fournisseurs", label: "Fournisseurs", Icone: Truck },
+  { href: "/rapports", label: "Rapports", Icone: BarChart3 },
 ];
 
 export default function Sidebar() {
@@ -40,10 +51,11 @@ export default function Sidebar() {
             <Link
               key={lien.href}
               href={lien.href}
-              className={`rounded-xl px-4 py-2.5 text-base font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-base font-medium transition-colors ${
                 actif ? "bg-accent text-white" : "text-ink-muted hover:bg-page"
               }`}
             >
+              <lien.Icone className="h-5 w-5 shrink-0" />
               {lien.label}
             </Link>
           );
