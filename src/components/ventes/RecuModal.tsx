@@ -35,12 +35,6 @@ export default function RecuModal({ data, venteId, onClose }: RecuModalProps) {
         <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-line px-6 py-4 print:hidden">
           <h2 className="text-lg font-semibold">Prévisualisation du reçu</h2>
           <div className="flex items-center gap-3">
-            <select
-              defaultValue="thermique-80"
-              className="rounded-lg border border-line bg-page px-2 py-1 text-sm text-ink"
-            >
-              <option value="thermique-80">Thermique 80 mm</option>
-            </select>
             <button
               type="button"
               onClick={onClose}
