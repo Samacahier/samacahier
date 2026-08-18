@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Modal from "@/components/ui/Modal";
 import RecuContent, { type RecuData } from "./RecuContent";
 
 type RecuModalProps = {
@@ -10,13 +9,11 @@ type RecuModalProps = {
   onClose: () => void;
 };
 
-const BOUTON_NEUTRE =
-  "flex-1 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink whitespace-nowrap";
+const BOUTON = "flex-1 rounded-[10px] border border-line bg-card px-2.5 py-2.5 text-[12.5px] font-bold text-ink";
 
-// Réutilise le composant Modal partagé (même bottom-sheet mobile / centrage
-// desktop que VenteForm, DepenseForm, etc.) — les boutons d'action vivent
-// dans le corps scrollable, juste au-dessus du reçu, donc ancrés dans la
-// modale et jamais détachés.
+// Carte flottante centrée (jamais ancrée en bas), identique desktop et
+// mobile — cf. bottom-sheet-correct.html. z-index au-dessus de la nav
+// basse (z-50) pour que le backdrop l'assombrisse toujours entièrement.
 export default function RecuModal({ data, venteId, onClose }: RecuModalProps) {
   const [copie, setCopie] = useState(false);
 
@@ -38,31 +35,42 @@ export default function RecuModal({ data, venteId, onClose }: RecuModalProps) {
   }
 
   return (
-    <Modal title="Prévisualisation du reçu" onClose={onClose}>
-      <div className="flex flex-col gap-4 print:hidden">
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onClose} className={BOUTON_NEUTRE}>
-            Fermer
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/55 p-5">
+      <div className="flex max-h-[78vh] w-full max-w-[340px] flex-col rounded-[22px] bg-card shadow-2xl sm:max-w-md">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3.5">
+          <h2 className="font-display text-[17px] font-bold">Prévisualisation du reçu</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="text-lg text-ink-muted"
+          >
+            ✕
           </button>
+        </div>
+
+        <div className="flex gap-2 px-5 pb-3.5">
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex-1 rounded-lg bg-accent px-3 py-2 text-sm font-medium whitespace-nowrap text-white"
+            className="flex-1 rounded-[10px] bg-accent px-2.5 py-2.5 text-[12.5px] font-bold text-white"
           >
             Imprimer
           </button>
-          <button type="button" onClick={() => window.print()} className={BOUTON_NEUTRE}>
+          <button type="button" onClick={() => window.print()} className={BOUTON}>
             Enregistrer en PDF
           </button>
-          <button type="button" onClick={handlePartager} className={BOUTON_NEUTRE}>
+          <button type="button" onClick={handlePartager} className={BOUTON}>
             {copie ? "Lien copié !" : "Partager"}
           </button>
         </div>
-      </div>
 
-      <div className="mt-4">
-        <RecuContent {...data} />
+        <div className="flex-1 overflow-y-auto px-5">
+          <RecuContent {...data} />
+        </div>
+
+        <div style={{ height: "max(18px, env(safe-area-inset-bottom))" }} />
       </div>
-    </Modal>
+    </div>
   );
 }
