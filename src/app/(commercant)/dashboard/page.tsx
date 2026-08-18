@@ -42,7 +42,7 @@ export default async function DashboardPage() {
   const devise = commercant?.devise ?? "FCFA";
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8 lg:max-w-[1200px] lg:gap-6 lg:px-10 lg:py-10">
+    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8 lg:max-w-[1440px] lg:gap-7 lg:px-14 lg:py-12">
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[2fr_1fr] lg:items-start lg:gap-6">
         <HeroSoldeCard
           devise={devise}

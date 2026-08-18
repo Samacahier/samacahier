@@ -19,7 +19,7 @@ export default async function TresoreriePage() {
     : [null, [], []];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 lg:max-w-[1200px] lg:px-10 lg:py-10">
+    <main className="mx-auto max-w-3xl px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
       <TresorerieTabs commercant={commercant} mouvements={mouvements} creances={creances} />
     </main>
   );
