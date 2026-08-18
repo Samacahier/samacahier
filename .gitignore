@@ -43,3 +43,7 @@ supabase/.temp
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docs et maquettes de référence (jamais dans le repo en ligne)
+*.md
+*.html
