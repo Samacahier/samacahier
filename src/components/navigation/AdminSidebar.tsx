@@ -18,6 +18,7 @@ export default function AdminSidebar() {
   const LIENS = [
     { href: "/admin/vue-ensemble", label: "Vue d'ensemble" },
     { href: "/admin/dashboard", label: "Commerçants", aussi: "/admin/commercants" },
+    { href: "/admin/rapports", label: "Rapports plateforme" },
     { href: "/admin/compte", label: "Mon compte" },
   ];
 
