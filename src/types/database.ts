@@ -90,6 +90,7 @@ export type Database = {
           remise: number;
           statut: StatutVente;
           montant_encaisse: number | null;
+          code_vente: string;
         };
         Insert: {
           id?: string;
@@ -106,6 +107,8 @@ export type Database = {
           remise?: number;
           statut?: StatutVente;
           montant_encaisse?: number | null;
+          // Généré par le trigger ventes_set_code_vente si omis.
+          code_vente?: string;
         };
         Update: Partial<Database["public"]["Tables"]["ventes"]["Insert"]>;
         Relationships: [];

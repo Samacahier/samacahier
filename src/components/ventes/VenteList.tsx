@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import VenteForm from "./VenteForm";
+import RecuModal from "./RecuModal";
+import type { RecuData } from "./RecuContent";
 import { deleteVente } from "@/lib/ventes/queries";
-import type { Client, Stock, Vente } from "@/types/database";
+import type { Client, Commercant, Stock, Vente } from "@/types/database";
 
 type VenteListProps = {
   ventes: Vente[];
   produits: Stock[];
   clients: Client[];
+  commercant: Commercant | null;
 };
 
 const STATUT_LABELS: Record<Vente["statut"], string> = {
@@ -25,12 +27,29 @@ const STATUT_BADGE: Record<Vente["statut"], string> = {
   impaye: "bg-status-impaye-bg text-status-impaye",
 };
 
-export default function VenteList({ ventes, produits, clients }: VenteListProps) {
+export default function VenteList({ ventes, produits, clients, commercant }: VenteListProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [recuVente, setRecuVente] = useState<Vente | null>(null);
 
   const venteEnEdition = ventes.find((vente) => vente.id === editingId) ?? null;
+
+  function nomClient(clientId: string | null): string {
+    if (!clientId) return "Client comptant";
+    return clients.find((client) => client.id === clientId)?.nom ?? "Client comptant";
+  }
+
+  function recuDataPour(vente: Vente): RecuData {
+    return {
+      nomCommerce: commercant?.nom_commerce ?? "Commerce",
+      telephone: commercant?.telephone ?? null,
+      adresse: commercant?.adresse ?? null,
+      activite: commercant?.activite ?? null,
+      clientNom: nomClient(vente.client_id),
+      vente,
+    };
+  }
 
   async function handleDelete(id: string) {
     if (!window.confirm("Supprimer cette vente ?")) return;
@@ -58,7 +77,10 @@ export default function VenteList({ ventes, produits, clients }: VenteListProps)
           <VenteForm
             produits={produits}
             clients={clients}
-            onSuccess={() => setShowCreateForm(false)}
+            onSuccess={(venteCreee) => {
+              setShowCreateForm(false);
+              setRecuVente(venteCreee);
+            }}
             onCancel={() => setShowCreateForm(false)}
           />
         </Modal>
@@ -74,6 +96,14 @@ export default function VenteList({ ventes, produits, clients }: VenteListProps)
             onCancel={() => setEditingId(null)}
           />
         </Modal>
+      )}
+
+      {recuVente && (
+        <RecuModal
+          data={recuDataPour(recuVente)}
+          venteId={recuVente.id}
+          onClose={() => setRecuVente(null)}
+        />
       )}
 
       {ventes.length === 0 ? (
@@ -107,14 +137,13 @@ export default function VenteList({ ventes, produits, clients }: VenteListProps)
                   </td>
                   <td className="py-2">
                     <div className="flex gap-2 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
-                      <Link
-                        href={`/ventes/${vente.id}/recu`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => setRecuVente(vente)}
                         className="underline"
                       >
                         Reçu
-                      </Link>
+                      </button>
                       <button
                         type="button"
                         onClick={() => setEditingId(vente.id)}

@@ -70,6 +70,23 @@ body {
     background: #ffffff;
     color: #000000;
   }
+
+  /* Reçu de vente : n'imprime que #recu-imprimable, où qu'il soit dans le
+     DOM (modale ou page /ventes/[id]/recu). Sans effet si l'élément est
+     absent (rapports A4 notamment, inchangés). */
+  body:has(#recu-imprimable) * {
+    visibility: hidden;
+  }
+  body:has(#recu-imprimable) #recu-imprimable,
+  body:has(#recu-imprimable) #recu-imprimable * {
+    visibility: visible;
+  }
+  #recu-imprimable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
 }
 
 /* Reveal au scroll (page publique) — voir useScrollReveal. */

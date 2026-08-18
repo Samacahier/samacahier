@@ -10,7 +10,7 @@ type VenteFormProps = {
   vente?: Vente;
   produits: Stock[];
   clients: Client[];
-  onSuccess: () => void;
+  onSuccess: (venteEnregistree: Vente) => void;
   onCancel: () => void;
 };
 
@@ -108,12 +108,12 @@ export default function VenteForm({
 
     setLoading(false);
 
-    if (result.error) {
-      setError(result.error);
+    if (result.error || !result.vente) {
+      setError(result.error ?? "Erreur inattendue.");
       return;
     }
 
-    onSuccess();
+    onSuccess(result.vente);
   }
 
   return (

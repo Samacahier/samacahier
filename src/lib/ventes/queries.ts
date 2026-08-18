@@ -156,7 +156,9 @@ async function syncStockForVente(
   }
 }
 
-export async function createVente(input: VenteFormInput) {
+export async function createVente(
+  input: VenteFormInput,
+): Promise<{ error: string | null; vente?: Vente }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -179,10 +181,13 @@ export async function createVente(input: VenteFormInput) {
   revalidatePath("/ventes");
   revalidatePath("/caisse");
   revalidatePath("/stocks");
-  return { error: null };
+  return { error: null, vente };
 }
 
-export async function updateVente(id: string, input: Partial<VenteFormInput>) {
+export async function updateVente(
+  id: string,
+  input: Partial<VenteFormInput>,
+): Promise<{ error: string | null; vente?: Vente }> {
   const supabase = await createClient();
 
   const { data: avant } = await supabase
@@ -207,7 +212,7 @@ export async function updateVente(id: string, input: Partial<VenteFormInput>) {
   revalidatePath("/ventes");
   revalidatePath("/caisse");
   revalidatePath("/stocks");
-  return { error: null };
+  return { error: null, vente };
 }
 
 export async function deleteVente(id: string) {
