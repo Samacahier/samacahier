@@ -38,38 +38,38 @@ export default function RecuContent({ nomCommerce, telephone, adresse, activite,
   return (
     <div
       id="recu-imprimable"
-      className="mx-auto w-full max-w-[300px] bg-white p-4 font-mono text-[11px] leading-snug text-black"
+      className="mx-auto w-full max-w-[320px] bg-white p-4 font-mono text-[11px] leading-tight text-black shadow-md"
     >
-      <p className="text-center font-bold uppercase">{nomCommerce}</p>
+      <p className="text-center text-sm font-bold uppercase">{nomCommerce}</p>
       {telephone && <p className="text-center">{telephone}</p>}
       {adresse && <p className="text-center uppercase">{adresse}</p>}
       {activite && <p className="text-center uppercase">{activite}</p>}
 
-      <div className="my-2 border-t border-black" />
+      <div className="my-1.5 border-t border-black" />
 
       <p className="text-center font-bold">REÇU DE VENTE</p>
-      <div className="h-2" />
+      <div className="h-1.5" />
 
       <div className="flex justify-between">
         <span>N° {vente.code_vente}</span>
         <span>{vente.date_vente}</span>
       </div>
-      <p>Client : {clientNom}</p>
-      <div className="h-2" />
+      <p className="font-bold">Client : {clientNom}</p>
+      <div className="h-1.5" />
 
-      <div className="grid grid-cols-[1fr_2rem_3.5rem_3.5rem] gap-1 border-b border-black pb-1 font-bold">
+      <div className="grid grid-cols-[1fr_2rem_3.5rem_3.75rem] gap-1 border-b border-black pb-1 font-bold">
         <span>PRODUIT</span>
         <span className="text-right">QTÉ</span>
         <span className="text-right">PRIX</span>
         <span className="text-right">TOTAL</span>
       </div>
-      <div className="grid grid-cols-[1fr_2rem_3.5rem_3.5rem] gap-1">
-        <span>{vente.description}</span>
-        <span className="text-right">{vente.quantite}</span>
-        <span className="text-right">{formaterMontant(vente.prix_unitaire)}</span>
-        <span className="text-right">{formaterMontant(vente.montant_total)}</span>
+      <div className="grid grid-cols-[1fr_2rem_3.5rem_3.75rem] gap-1">
+        <span className="truncate">{vente.description}</span>
+        <span className="text-right whitespace-nowrap">{vente.quantite}</span>
+        <span className="text-right whitespace-nowrap">{formaterMontant(vente.prix_unitaire)}</span>
+        <span className="text-right whitespace-nowrap">{formaterMontant(vente.montant_total)}</span>
       </div>
-      <div className="h-2" />
+      <div className="h-1.5" />
 
       <div className="flex justify-between">
         <span>Sous-total</span>
@@ -96,18 +96,16 @@ export default function RecuContent({ nomCommerce, telephone, adresse, activite,
         <span>Mode de paiement</span>
         <span>{MODE_PAIEMENT_LABELS[vente.mode_paiement] ?? vente.mode_paiement}</span>
       </div>
-      <div className="h-3" />
+      <div className="h-2" />
 
-      <div className="flex justify-center">
-        <div className="border border-black px-4 py-1 font-bold">
-          {STATUT_LABELS[vente.statut]}
-        </div>
+      <div className="border border-black px-4 py-1 font-bold inline-block">
+        {STATUT_LABELS[vente.statut]}
       </div>
 
-      <div className="my-3 border-t border-dashed border-black" />
+      <div className="my-2 border-t border-dashed border-black" />
 
       <p className="text-center">Merci pour votre confiance !</p>
-      <div className="h-2" />
+      <div className="h-1.5" />
       <p className="text-center text-[10px] text-gray-500">Géré avec Sama Cahier</p>
     </div>
   );
