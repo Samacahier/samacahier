@@ -71,7 +71,48 @@ export default function DepenseList({ depenses, fournisseurs }: DepenseListProps
       {depenses.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucune dépense enregistrée.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+        <>
+          {/* Mobile/tablette (<1024px) : cartes empilées */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {depenses.map((depense) => (
+              <div key={depense.id} className="rounded-2xl bg-card p-4">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-ink">{depense.libelle}</p>
+                    <p className="text-sm text-ink-muted">{depense.date_depense}</p>
+                  </div>
+                  <span className="font-medium text-ink">
+                    {depense.montant.toLocaleString("fr-FR")} FCFA
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
+                  <span>{depense.categorie ?? "—"}</span>
+                  <span>{SOURCE_LABELS[depense.source]}</span>
+                  <span>{nomFournisseur(depense.fournisseur_id)}</span>
+                </div>
+                <div className="mt-3 flex gap-3 border-t border-line pt-3 text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(depense.id)}
+                    className="underline"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(depense.id)}
+                    disabled={deletingId === depense.id}
+                    className="text-status-impaye underline disabled:opacity-50"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop (≥1024px) : table */}
+          <div className="hidden overflow-x-auto rounded-2xl bg-card p-4 lg:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-line">
@@ -116,7 +157,8 @@ export default function DepenseList({ depenses, fournisseurs }: DepenseListProps
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -51,7 +51,56 @@ export default function CreanceList({ creances }: CreanceListProps) {
       {creances.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucune créance enregistrée.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+        <>
+          {/* Mobile/tablette (<1024px) : cartes empilées */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {creances.map((creance) =>
+              editingId === creance.id ? (
+                <CreanceForm
+                  key={creance.id}
+                  creance={creance}
+                  onSuccess={() => setEditingId(null)}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <div key={creance.id} className="rounded-2xl bg-card p-4">
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <p className="font-medium text-ink">{creance.client_nom}</p>
+                    <span className="shrink-0 text-sm text-ink-muted">
+                      {STATUT_LABELS[creance.statut]}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
+                    <span>Dû : {creance.montant.toLocaleString("fr-FR")} FCFA</span>
+                    <span>
+                      Remboursé : {creance.montant_rembourse.toLocaleString("fr-FR")} FCFA
+                    </span>
+                    <span>Échéance : {creance.date_echeance ?? "—"}</span>
+                  </div>
+                  <div className="mt-3 flex gap-3 border-t border-line pt-3 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(creance.id)}
+                      className="underline"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(creance.id)}
+                      disabled={deletingId === creance.id}
+                      className="text-status-impaye underline disabled:opacity-50"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+
+          {/* Desktop (≥1024px) : table */}
+          <div className="hidden overflow-x-auto rounded-2xl bg-card p-4 lg:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-line">
@@ -108,7 +157,8 @@ export default function CreanceList({ creances }: CreanceListProps) {
               )}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

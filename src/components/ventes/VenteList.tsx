@@ -109,7 +109,54 @@ export default function VenteList({ ventes, produits, clients, commercant }: Ven
       {ventes.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucune vente enregistrée.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+        <>
+          {/* Mobile/tablette (<1024px) : cartes empilées */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {ventes.map((vente) => (
+              <div key={vente.id} className="rounded-2xl bg-card p-4">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-ink">{vente.description}</p>
+                    <p className="text-sm text-ink-muted">{vente.date_vente}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${STATUT_BADGE[vente.statut]}`}
+                  >
+                    {STATUT_LABELS[vente.statut]}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-ink-muted">
+                  <span>Qté : {vente.quantite}</span>
+                  <span className="font-medium text-ink">
+                    {vente.montant_total.toLocaleString("fr-FR")} FCFA
+                  </span>
+                </div>
+                <div className="mt-3 flex gap-3 border-t border-line pt-3 text-sm">
+                  <button type="button" onClick={() => setRecuVente(vente)} className="underline">
+                    Reçu
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(vente.id)}
+                    className="underline"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(vente.id)}
+                    disabled={deletingId === vente.id}
+                    className="text-status-impaye underline disabled:opacity-50"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop (≥1024px) : table */}
+          <div className="hidden overflow-x-auto rounded-2xl bg-card p-4 lg:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-line">
@@ -165,7 +212,8 @@ export default function VenteList({ ventes, produits, clients, commercant }: Ven
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

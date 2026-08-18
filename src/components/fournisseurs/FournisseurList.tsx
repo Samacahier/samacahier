@@ -45,7 +45,45 @@ export default function FournisseurList({ fournisseurs }: FournisseurListProps) 
       {fournisseurs.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucun fournisseur enregistré.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+        <>
+          {/* Mobile/tablette (<1024px) : cartes empilées */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {fournisseurs.map((fournisseur) =>
+              editingId === fournisseur.id ? (
+                <FournisseurForm
+                  key={fournisseur.id}
+                  fournisseur={fournisseur}
+                  onSuccess={() => setEditingId(null)}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <div key={fournisseur.id} className="rounded-2xl bg-card p-4">
+                  <p className="font-medium text-ink">{fournisseur.nom}</p>
+                  <p className="text-sm text-ink-muted">{fournisseur.contact ?? "—"}</p>
+                  <div className="mt-3 flex gap-3 border-t border-line pt-3 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(fournisseur.id)}
+                      className="underline"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(fournisseur.id)}
+                      disabled={deletingId === fournisseur.id}
+                      className="text-status-impaye underline disabled:opacity-50"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+
+          {/* Desktop (≥1024px) : table */}
+          <div className="hidden overflow-x-auto rounded-2xl bg-card p-4 lg:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-line">
@@ -94,7 +132,8 @@ export default function FournisseurList({ fournisseurs }: FournisseurListProps) 
               )}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -66,7 +66,54 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
       {stocks.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucun produit enregistré.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-card p-4">
+        <>
+          {/* Mobile/tablette (<1024px) : cartes empilées */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {stocks.map((stock) => (
+              <div key={stock.id} className="rounded-2xl bg-card p-4">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-ink">{stock.nom_article}</p>
+                    <p className="text-sm text-ink-muted">
+                      {stock.code_produit} · {stock.categorie ?? "—"}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 text-sm font-medium ${
+                      stock.quantite <= stock.seuil_alerte ? "text-status-impaye" : "text-ink"
+                    }`}
+                  >
+                    {stock.quantite} {stock.unite}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
+                  <span>Achat : {stock.prix_achat?.toLocaleString("fr-FR") ?? "—"} FCFA</span>
+                  <span>Vente : {stock.prix_vente?.toLocaleString("fr-FR") ?? "—"} FCFA</span>
+                  <span>{nomFournisseur(stock.fournisseur_id)}</span>
+                </div>
+                <div className="mt-3 flex gap-3 border-t border-line pt-3 text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(stock.id)}
+                    className="underline"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(stock.id)}
+                    disabled={deletingId === stock.id}
+                    className="text-status-impaye underline disabled:opacity-50"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop (≥1024px) : table */}
+          <div className="hidden overflow-x-auto rounded-2xl bg-card p-4 lg:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-line">
@@ -127,7 +174,8 @@ export default function StockList({ stocks, fournisseurs }: StockListProps) {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
