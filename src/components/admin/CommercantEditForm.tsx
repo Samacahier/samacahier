@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { updateCommercant } from "@/lib/commercants/queries";
+import { updateCommercantInfos } from "@/lib/commercants/admin-actions";
 
 type CommercantEditFormProps = {
   commercantId: string;
@@ -28,7 +28,7 @@ export default function CommercantEditForm({
     setLoading(true);
     setInfo(null);
 
-    const { error } = await updateCommercant(commercantId, {
+    const { error } = await updateCommercantInfos(commercantId, {
       nom_commerce: nom,
       activite: act || null,
     });

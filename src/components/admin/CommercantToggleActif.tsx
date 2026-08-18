@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateCommercant } from "@/lib/commercants/queries";
+import { toggleCommercantActif } from "@/lib/commercants/admin-actions";
 
 type CommercantToggleActifProps = {
   commercantId: string;
@@ -23,7 +23,7 @@ export default function CommercantToggleActif({
     if (!window.confirm(confirmation)) return;
 
     setLoading(true);
-    await updateCommercant(commercantId, { actif: !actif });
+    await toggleCommercantActif(commercantId, !actif);
     setLoading(false);
     router.refresh();
   }

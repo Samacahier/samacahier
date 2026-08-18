@@ -2,14 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCommercant, updateCommercant } from "@/lib/commercants/queries";
 
-async function verifierAdmin() {
+async function verifierAdmin(): Promise<{ error: string | null; adminId: string | null }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return "Non authentifié.";
+  if (!user) return { error: "Non authentifié.", adminId: null };
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -17,30 +18,98 @@ async function verifierAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") return "Action réservée à l'administrateur.";
+  if (profile?.role !== "admin") {
+    return { error: "Action réservée à l'administrateur.", adminId: null };
+  }
 
-  return null;
+  return { error: null, adminId: user.id };
+}
+
+// Enregistre une ligne dans le journal d'activité admin (Phase 8,
+// Section 4). Appelé après chaque action sensible réussie sur une fiche
+// commerçant.
+async function enregistrerLog(
+  adminId: string,
+  action: string,
+  commercantId: string | null,
+  detail: string,
+) {
+  const supabase = await createClient();
+  await supabase
+    .from("admin_logs")
+    .insert({ admin_id: adminId, action, commercant_id: commercantId, detail });
 }
 
 // Réinitialise le mot de passe d'un commerçant depuis sa fiche admin.
 // Utilise l'API admin Supabase (clé service_role, jamais exposée au
 // client) — appelable uniquement par un admin authentifié.
 export async function resetCommercantPassword(commercantId: string, nouveauMotDePasse: string) {
-  const erreurAuth = await verifierAdmin();
-  if (erreurAuth) return { error: erreurAuth };
+  const { error: erreurAuth, adminId } = await verifierAdmin();
+  if (erreurAuth || !adminId) return { error: erreurAuth };
 
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.updateUserById(commercantId, {
     password: nouveauMotDePasse,
   });
 
-  return { error: error?.message ?? null };
+  if (error) return { error: error.message };
+
+  const commercant = await getCommercant(commercantId);
+  await enregistrerLog(
+    adminId,
+    "reinitialisation_mot_de_passe",
+    commercantId,
+    `Mot de passe réinitialisé pour ${commercant?.nom_commerce ?? commercantId}`,
+  );
+
+  return { error: null };
+}
+
+// Active ou désactive un compte commerçant, journalisé dans admin_logs.
+export async function toggleCommercantActif(commercantId: string, actif: boolean) {
+  const { error: erreurAuth, adminId } = await verifierAdmin();
+  if (erreurAuth || !adminId) return { error: erreurAuth };
+
+  const { error } = await updateCommercant(commercantId, { actif });
+  if (error) return { error };
+
+  const commercant = await getCommercant(commercantId);
+  await enregistrerLog(
+    adminId,
+    actif ? "activation" : "desactivation",
+    commercantId,
+    `${actif ? "Compte réactivé" : "Compte désactivé"} — ${commercant?.nom_commerce ?? commercantId}`,
+  );
+
+  return { error: null };
+}
+
+// Corrige le nom du commerce / l'activité d'un commerçant, journalisé
+// dans admin_logs.
+export async function updateCommercantInfos(
+  commercantId: string,
+  input: { nom_commerce: string; activite: string | null },
+) {
+  const { error: erreurAuth, adminId } = await verifierAdmin();
+  if (erreurAuth || !adminId) return { error: erreurAuth };
+
+  const { error } = await updateCommercant(commercantId, input);
+  if (error) return { error };
+
+  await enregistrerLog(
+    adminId,
+    "correction_infos",
+    commercantId,
+    `Infos corrigées — ${input.nom_commerce}${input.activite ? " / " + input.activite : ""}`,
+  );
+
+  return { error: null };
 }
 
 // Envoie un email au commerçant (adresse de connexion réelle, récupérée
 // via l'API admin) depuis sa fiche, via Resend.
 export async function sendCommercantEmail(commercantId: string, objet: string, message: string) {
-  const erreurAuth = await verifierAdmin();
+  const { error: erreurAuth } = await verifierAdmin();
   if (erreurAuth) return { error: erreurAuth };
 
   const admin = createAdminClient();

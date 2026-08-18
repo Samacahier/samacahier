@@ -267,6 +267,26 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["fournisseurs"]["Insert"]>;
         Relationships: [];
       };
+      admin_logs: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action: string;
+          commercant_id: string | null;
+          detail: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          action: string;
+          commercant_id?: string | null;
+          detail?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_logs"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -284,3 +304,4 @@ export type Creance = Database["public"]["Tables"]["creances"]["Row"];
 export type Caisse = Database["public"]["Tables"]["caisse"]["Row"];
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type Fournisseur = Database["public"]["Tables"]["fournisseurs"]["Row"];
+export type AdminLog = Database["public"]["Tables"]["admin_logs"]["Row"];

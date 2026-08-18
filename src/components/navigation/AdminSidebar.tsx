@@ -19,6 +19,7 @@ export default function AdminSidebar() {
     { href: "/admin/vue-ensemble", label: "Vue d'ensemble" },
     { href: "/admin/dashboard", label: "Commerçants", aussi: "/admin/commercants" },
     { href: "/admin/rapports", label: "Rapports plateforme" },
+    { href: "/admin/journal", label: "Journal d'activité" },
     { href: "/admin/compte", label: "Mon compte" },
   ];
 
