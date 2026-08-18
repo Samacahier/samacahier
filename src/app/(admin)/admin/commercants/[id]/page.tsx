@@ -10,6 +10,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import CommercantToggleActif from "@/components/admin/CommercantToggleActif";
 import CommercantEditForm from "@/components/admin/CommercantEditForm";
 import CommercantResetPassword from "@/components/admin/CommercantResetPassword";
+import CommercantSendEmail from "@/components/admin/CommercantSendEmail";
 import SectionTable from "@/components/admin/SectionTable";
 
 export default async function CommercantDetailPage({
@@ -87,6 +88,10 @@ export default async function CommercantDetailPage({
           <div className="rounded-2xl bg-card p-4">
             <h2 className="mb-3 font-semibold text-ink">Mot de passe</h2>
             <CommercantResetPassword commercantId={id} />
+          </div>
+          <div className="rounded-2xl bg-card p-4">
+            <h2 className="mb-3 font-semibold text-ink">Envoyer un email</h2>
+            <CommercantSendEmail commercantId={id} />
           </div>
         </div>
       </div>

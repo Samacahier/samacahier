@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { CommercantOverview } from "@/lib/dashboard/admin-queries";
 
 type CommercantsTableProps = {
@@ -14,6 +15,7 @@ type Tri = "recent" | "ca" | "activite";
 const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
 
 export default function CommercantsTable({ overviews }: CommercantsTableProps) {
+  const router = useRouter();
   const [recherche, setRecherche] = useState("");
   const [filtre, setFiltre] = useState<Filtre>("tous");
   const [tri, setTri] = useState<Tri>("recent");
@@ -82,7 +84,11 @@ export default function CommercantsTable({ overviews }: CommercantsTableProps) {
             </thead>
             <tbody>
               {lignes.map(({ commercant, chiffreAffaires, soldeCaisse }) => (
-                <tr key={commercant.id} className="border-b border-line">
+                <tr
+                  key={commercant.id}
+                  onClick={() => router.push(`/admin/commercants/${commercant.id}`)}
+                  className="cursor-pointer border-b border-line hover:bg-page"
+                >
                   <td className="py-2">
                     <Link
                       href={`/admin/commercants/${commercant.id}`}
