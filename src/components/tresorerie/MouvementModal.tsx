@@ -90,7 +90,7 @@ export default function MouvementModal({
 
         {error && <p className="text-sm text-status-impaye">{error}</p>}
 
-        <div className="flex flex-col gap-2">
+        <div className="sticky bottom-0 -mx-6 flex flex-col gap-2 bg-card px-6 pt-3 pb-4">
           <button
             type="submit"
             disabled={loading}
