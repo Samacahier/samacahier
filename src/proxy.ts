@@ -42,14 +42,17 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isAdminRoute = pathname.startsWith("/admin");
+  // "/admin" (page de connexion) reste hors protection : seules les
+  // sous-routes (ex. /admin/dashboard) sont réservées aux admins, sinon
+  // un non-admin redirigé vers /admin y boucle indéfiniment.
+  const isAdminRoute = pathname.startsWith("/admin/");
   const isCommercantRoute = COMMERCANT_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 
   if (isAdminRoute) {
     if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
 
     const { data: profile } = await supabase
@@ -59,7 +62,7 @@ export async function proxy(request: NextRequest) {
       .single();
 
     if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
   } else if (isCommercantRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));

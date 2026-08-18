@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import AuthShell from "@/components/auth/AuthShell";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,36 +35,28 @@ export default function LoginPage() {
       .eq("id", data.user.id)
       .single();
 
-    if (profile?.role === "admin") {
+    if (profile?.role !== "admin") {
       await supabase.auth.signOut();
-      setError("Ce compte n'est pas un compte commerçant.");
+      setError("Ce compte n'est pas un compte administrateur.");
       setLoading(false);
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/admin/dashboard");
     router.refresh();
   }
 
   return (
     <AuthShell
-      eyebrow="Content de vous revoir"
-      titre="Connexion"
-      sousTitre="Retrouvez votre commerce et vos données."
-      brandTitre="Le cahier de votre commerce ne se perd plus."
+      eyebrow="Espace administrateur"
+      titre="Connexion admin"
+      sousTitre="Réservé à la gestion des comptes commerçants."
+      brandTitre="Vue d'ensemble de tous les commerces."
       brandBullets={[
-        { mark: "✓", texte: "Vos ventes, dépenses et stock, au même endroit" },
-        { mark: "✓", texte: "Vos données réservées à votre commerce" },
-        { mark: "✓", texte: "Accessible depuis n'importe quel téléphone" },
+        { mark: "✓", texte: "Suivi de tous les comptes commerçants" },
+        { mark: "✓", texte: "Accès réservé à l'administrateur" },
       ]}
-      footer={
-        <>
-          Pas encore de compte ?{" "}
-          <Link href="/register" className="font-semibold text-accent-dark underline">
-            Créer un compte
-          </Link>
-        </>
-      }
+      footer="Accès réservé à l'administrateur de la plateforme."
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm text-ink-muted">
