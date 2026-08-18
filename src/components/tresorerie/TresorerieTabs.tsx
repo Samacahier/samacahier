@@ -32,8 +32,8 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`px-3 py-2 text-sm ${
-        actif ? "border-b-2 border-accent font-semibold text-accent" : "text-ink-muted"
+      className={`px-3 py-2 text-base ${
+        actif ? "border-b-2 border-accent font-bold text-accent" : "font-semibold text-ink-muted"
       }`}
     >
       {children}
