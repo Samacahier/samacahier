@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import AuthShell from "@/components/auth/AuthShell";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -47,50 +47,77 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <AuthShell
-      eyebrow="Espace administrateur"
-      titre="Connexion admin"
-      sousTitre="Réservé à la gestion des comptes commerçants."
-      brandTitre="Vue d'ensemble de tous les commerces."
-      brandBullets={[
-        { mark: "✓", texte: "Suivi de tous les comptes commerçants" },
-        { mark: "✓", texte: "Accès réservé à l'administrateur" },
-      ]}
-      footer="Accès réservé à l'administrateur de la plateforme."
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm text-ink-muted">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="rounded-xl border border-line bg-card px-3 py-2 text-ink"
-          />
-        </label>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#241811] to-hero-deep p-6">
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,249,239,0.045)_1.5px,transparent_1.5px)] [background-size:26px_26px]"
+      />
 
-        <label className="flex flex-col gap-1 text-sm text-ink-muted">
-          Mot de passe
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="rounded-xl border border-line bg-card px-3 py-2 text-ink"
-          />
-        </label>
+      <Link
+        href="/"
+        className="absolute top-7 left-8 text-[13px] font-semibold text-card/50"
+      >
+        ← Retour au site
+      </Link>
 
-        {error && <p className="text-sm text-status-impaye">{error}</p>}
+      <div className="relative w-full max-w-[380px] rounded-[18px] border border-card/12 bg-black/[0.22] px-[34px] py-10 backdrop-blur-[6px]">
+        <div className="font-jetbrains mb-[22px] inline-flex items-center gap-2 rounded-full border border-card/18 px-3 py-1.5 text-[11px] font-bold tracking-[0.08em] text-card/55">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            className="h-3 w-3"
+          >
+            <rect x="5" y="11" width="14" height="9" rx="2" />
+            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          ACCÈS RESTREINT
+        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-xl bg-accent px-3 py-2 font-medium text-white disabled:opacity-50"
-        >
-          {loading ? "Connexion..." : "Se connecter"}
-        </button>
-      </form>
-    </AuthShell>
+        <h1 className="font-display mb-2 text-2xl text-card">Accès administrateur</h1>
+        <p className="mb-7 text-[13.5px] text-card/55">
+          Réservé à la gestion de la plateforme.
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <label className="mb-4 flex flex-col gap-[7px] text-[12.5px] font-semibold text-card/65">
+            Email
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="rounded-[10px] border border-card/16 bg-black/[0.28] px-[13px] py-3 text-[14.5px] font-normal text-card placeholder:text-card/30 focus:border-accent focus:outline-none"
+            />
+          </label>
+
+          <label className="mb-4 flex flex-col gap-[7px] text-[12.5px] font-semibold text-card/65">
+            Mot de passe
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="rounded-[10px] border border-card/16 bg-black/[0.28] px-[13px] py-3 text-[14.5px] font-normal text-card placeholder:text-card/30 focus:border-accent focus:outline-none"
+            />
+          </label>
+
+          {error && <p className="text-[13px] text-red-300">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-[22px] rounded-[10px] bg-accent py-[13px] text-[14.5px] font-bold text-white disabled:opacity-50"
+          >
+            {loading ? "Connexion..." : "Se connecter"}
+          </button>
+        </form>
+
+        <p className="mt-5 text-center text-[11.5px] text-card/35">
+          Accès réservé à l&apos;administrateur de la plateforme.
+        </p>
+      </div>
+    </div>
   );
 }
