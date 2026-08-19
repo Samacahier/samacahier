@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { notifierAdminNouveauCommercant } from "@/lib/admin/notifications";
 import AuthShell from "@/components/auth/AuthShell";
 import RegisterProgress from "@/components/auth/RegisterProgress";
 import RegisterAccountStep from "@/components/auth/RegisterAccountStep";
@@ -110,6 +111,10 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
+
+    // Le trigger handle_new_user() a déjà créé profiles + commercants à ce
+    // stade (côté Supabase, avant le retour de signUp) — safe de notifier.
+    await notifierAdminNouveauCommercant(values.nomCommerce, values.activite || null);
 
     // L'upload du logo nécessite une session active (RLS du bucket "logos") :
     // seulement possible si l'inscription est immédiatement confirmée.

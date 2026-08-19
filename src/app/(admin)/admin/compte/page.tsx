@@ -1,125 +1,67 @@
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/profiles/queries";
+import AdminProfileForm from "@/components/admin/AdminProfileForm";
+import AdminNotificationsForm from "@/components/admin/AdminNotificationsForm";
+import ChangerMotDePasseForm from "@/components/admin/ChangerMotDePasseForm";
 
-import { useState, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
+function formaterDerniereConnexion(dateIso: string | null): string {
+  if (!dateIso) return "Inconnue";
 
-const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
+  const date = new Date(dateIso);
+  const maintenant = new Date();
+  const heure = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-export default function AdminComptePage() {
-  const [ancienMotDePasse, setAncienMotDePasse] = useState("");
-  const [nouveauMotDePasse, setNouveauMotDePasse] = useState("");
-  const [confirmation, setConfirmation] = useState("");
-  const [erreur, setErreur] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  if (date.toDateString() === maintenant.toDateString()) return `Aujourd'hui à ${heure}`;
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setErreur(null);
-    setMessage(null);
+  const hier = new Date(maintenant);
+  hier.setDate(hier.getDate() - 1);
+  if (date.toDateString() === hier.toDateString()) return `Hier à ${heure}`;
 
-    if (nouveauMotDePasse !== confirmation) {
-      setErreur("Les mots de passe ne correspondent pas.");
-      return;
-    }
+  return `${date.toLocaleDateString("fr-FR")} à ${heure}`;
+}
 
-    setLoading(true);
-    const supabase = createClient();
+export default async function AdminComptePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user?.email) {
-      setErreur("Session invalide.");
-      setLoading(false);
-      return;
-    }
-
-    // Revérifie l'ancien mot de passe via une nouvelle authentification,
-    // avant d'autoriser le changement (updateUser ne le redemande pas).
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: ancienMotDePasse,
-    });
-
-    if (reauthError) {
-      setErreur("Ancien mot de passe incorrect.");
-      setLoading(false);
-      return;
-    }
-
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: nouveauMotDePasse,
-    });
-
-    setLoading(false);
-
-    if (updateError) {
-      setErreur(updateError.message);
-      return;
-    }
-
-    setMessage("Mot de passe mis à jour.");
-    setAncienMotDePasse("");
-    setNouveauMotDePasse("");
-    setConfirmation("");
-  }
+  const profile = user ? await getProfile(user.id) : null;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
+    <main className="px-4 py-8 lg:px-14 lg:py-12">
       <h1 className="mb-6 text-2xl font-semibold text-ink">Mon compte</h1>
 
-      <div className="max-w-sm rounded-2xl bg-card p-4">
-        <h2 className="mb-3 font-semibold text-ink">Changer mon mot de passe</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm text-ink-muted">
-            Ancien mot de passe
-            <input
-              type="password"
-              required
-              value={ancienMotDePasse}
-              onChange={(event) => setAncienMotDePasse(event.target.value)}
-              className={CHAMP}
+      {user && profile ? (
+        <div className="flex max-w-[560px] flex-col gap-4">
+          <div className="rounded-2xl border border-line bg-card p-6">
+            <h2 className="text-base font-semibold text-ink">Informations du compte</h2>
+            <p className="mb-4 text-xs text-ink-muted">
+              Vos informations personnelles en tant qu&apos;administratrice.
+            </p>
+            <AdminProfileForm
+              profile={profile}
+              email={user.email ?? ""}
+              derniereConnexion={formaterDerniereConnexion(user.last_sign_in_at ?? null)}
             />
-          </label>
+          </div>
 
-          <label className="flex flex-col gap-1 text-sm text-ink-muted">
-            Nouveau mot de passe
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={nouveauMotDePasse}
-              onChange={(event) => setNouveauMotDePasse(event.target.value)}
-              className={CHAMP}
-            />
-          </label>
+          <div className="rounded-2xl border border-line bg-card p-6">
+            <h2 className="text-base font-semibold text-ink">Notifications par e-mail</h2>
+            <p className="mb-1 text-xs text-ink-muted">
+              Être alertée sans devoir se connecter tous les jours.
+            </p>
+            <AdminNotificationsForm profile={profile} />
+          </div>
 
-          <label className="flex flex-col gap-1 text-sm text-ink-muted">
-            Confirmer le nouveau mot de passe
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              className={CHAMP}
-            />
-          </label>
-
-          {erreur && <p className="text-sm text-status-impaye">{erreur}</p>}
-          {message && <p className="text-sm text-status-paye">{message}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="self-start rounded-xl bg-accent px-4 py-2 font-medium text-white disabled:opacity-50"
-          >
-            {loading ? "Enregistrement..." : "Mettre à jour"}
-          </button>
-        </form>
-      </div>
+          <div className="rounded-2xl border border-line bg-card p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">Changer mon mot de passe</h2>
+            <ChangerMotDePasseForm />
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-ink-muted">Session invalide.</p>
+      )}
     </main>
   );
 }

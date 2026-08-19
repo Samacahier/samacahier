@@ -20,6 +20,10 @@ export type Database = {
           role: Role;
           nom: string;
           telephone: string | null;
+          avatar_url: string | null;
+          notif_nouveau_commercant: boolean;
+          notif_commercant_inactif: boolean;
+          notif_resume_hebdo: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -28,6 +32,10 @@ export type Database = {
           role?: Role;
           nom?: string;
           telephone?: string | null;
+          avatar_url?: string | null;
+          notif_nouveau_commercant?: boolean;
+          notif_commercant_inactif?: boolean;
+          notif_resume_hebdo?: boolean;
           created_at?: string;
           updated_at?: string;
         };
