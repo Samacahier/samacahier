@@ -19,7 +19,27 @@ export async function listAdminLogs(): Promise<LogEnrichi[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
-  if (!logs || logs.length === 0) return [];
+  return enrichirLogs(logs ?? []);
+}
+
+// Les `limite` actions les plus récentes, pour l'aperçu de la vue
+// d'ensemble (évite de charger tout le journal pour n'en afficher que 3).
+export async function listAdminLogsRecents(limite: number): Promise<LogEnrichi[]> {
+  const supabase = await createClient();
+
+  const { data: logs, error } = await supabase
+    .from("admin_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limite);
+
+  if (error) throw new Error(error.message);
+  return enrichirLogs(logs ?? []);
+}
+
+async function enrichirLogs(logs: AdminLog[]): Promise<LogEnrichi[]> {
+  if (logs.length === 0) return [];
+  const supabase = await createClient();
 
   const adminIds = [
     ...new Set(logs.map((log) => log.admin_id).filter((id): id is string => Boolean(id))),
