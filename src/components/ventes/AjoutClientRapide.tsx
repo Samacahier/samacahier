@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { createClient } from "@/lib/clients/queries";
 import type { Client } from "@/types/database";
 
@@ -15,8 +15,12 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleAjouter() {
+    if (!nom.trim()) {
+      setError("Le nom est requis.");
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
@@ -32,15 +36,28 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
     onCreated(result.client);
   }
 
+  // Pas de <form> ici volontairement : ce bloc est imbriqué dans le
+  // <form> de VenteForm, et le HTML interdit les formulaires imbriqués
+  // (le navigateur ignorait la balise et le bouton finissait par
+  // soumettre le formulaire de vente en cours de saisie du client — le
+  // client n'était jamais enregistré). On intercepte donc Entrée
+  // nous-mêmes plutôt que de la laisser remonter au formulaire parent.
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAjouter();
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-page p-3">
+    <div className="flex flex-col gap-2 rounded-xl bg-page p-3">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <input
           type="text"
-          required
           placeholder="Nom du client"
           value={nom}
           onChange={(event) => setNom(event.target.value)}
+          onKeyDown={handleKeyDown}
           className="rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
         />
         <input
@@ -48,6 +65,7 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
           placeholder="Téléphone (facultatif)"
           value={telephone}
           onChange={(event) => setTelephone(event.target.value)}
+          onKeyDown={handleKeyDown}
           className="rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
         />
       </div>
@@ -56,7 +74,8 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
 
       <div className="flex gap-2">
         <button
-          type="submit"
+          type="button"
+          onClick={handleAjouter}
           disabled={loading}
           className="rounded-xl bg-accent px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
@@ -70,6 +89,6 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
           Annuler
         </button>
       </div>
-    </form>
+    </div>
   );
 }
