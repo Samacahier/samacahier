@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getRapportPeriode,
@@ -58,6 +60,14 @@ export default async function BilanMensuelPage({ searchParams }: BilanMensuelPag
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
+      <Link
+        href="/rapports"
+        className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink print:hidden"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Retour
+      </Link>
+
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-semibold text-ink">Bilan mensuel</h1>
         <PrintButton />
