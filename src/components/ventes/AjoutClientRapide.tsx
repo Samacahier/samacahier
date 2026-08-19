@@ -34,21 +34,21 @@ export default function AjoutClientRapide({ onCreated, onCancel }: AjoutClientRa
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-page p-3">
-      <div className="flex gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <input
           type="text"
           required
           placeholder="Nom du client"
           value={nom}
           onChange={(event) => setNom(event.target.value)}
-          className="flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
+          className="rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
         />
         <input
           type="tel"
           placeholder="Téléphone (facultatif)"
           value={telephone}
           onChange={(event) => setTelephone(event.target.value)}
-          className="flex-1 rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
+          className="rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
         />
       </div>
 

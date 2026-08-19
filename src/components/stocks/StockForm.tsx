@@ -96,8 +96,8 @@ export default function StockForm({
         />
       </label>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Catégorie
           <select
             value={categorie}
@@ -113,7 +113,7 @@ export default function StockForm({
           </select>
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Unité
           <select
             value={unite}
@@ -129,25 +129,25 @@ export default function StockForm({
         </label>
       </div>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Prix d&apos;achat (FCFA)
           <NumberField min={0} value={prixAchat} onChange={setPrixAchat} className={CHAMP} />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Prix de vente (FCFA)
           <NumberField min={0} value={prixVente} onChange={setPrixVente} className={CHAMP} />
         </label>
       </div>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Stock initial
           <NumberField min={0} required value={quantite} onChange={setQuantite} className={CHAMP} />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Stock minimum
           <NumberField min={0} required value={seuilAlerte} onChange={setSeuilAlerte} className={CHAMP} />
         </label>
