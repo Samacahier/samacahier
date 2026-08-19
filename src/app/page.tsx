@@ -33,7 +33,7 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Sama Cahier — Le cahier de votre commerce, maintenant fiable",
+  title: { absolute: "Sama Cahier — Le cahier de votre commerce, maintenant fiable" },
 };
 
 export default function LandingPage() {
