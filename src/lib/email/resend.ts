@@ -14,7 +14,7 @@ export async function envoyerEmail({ to, subject, html }: EnvoyerEmailInput) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Sama Cahier <contact@samacahier.sn>",
+      from: "Sama Cahier <contact@sama-cahier.com>",
       to,
       subject,
       html,
