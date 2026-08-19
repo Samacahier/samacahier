@@ -16,7 +16,20 @@ export async function getCommercant(id: string): Promise<Commercant | null> {
 }
 
 export type CommercantUpdateInput = Partial<
-  Pick<Commercant, "nom_commerce" | "activite" | "actif">
+  Pick<
+    Commercant,
+    | "nom_commerce"
+    | "activite"
+    | "actif"
+    | "logo_url"
+    | "ninea"
+    | "rccm"
+    | "telephone_pro"
+    | "email_pro"
+    | "adresse"
+    | "ville_region"
+    | "devise"
+  >
 >;
 
 // Utilisé par l'admin pour corriger les infos de base d'un commerçant ou

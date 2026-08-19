@@ -273,7 +273,7 @@ export type Database = {
       admin_logs: {
         Row: {
           id: string;
-          admin_id: string;
+          admin_id: string | null;
           action: string;
           commercant_id: string | null;
           detail: string | null;
@@ -281,7 +281,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          admin_id: string;
+          admin_id?: string | null;
           action: string;
           commercant_id?: string | null;
           detail?: string | null;

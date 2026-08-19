@@ -21,7 +21,9 @@ export async function listAdminLogs(): Promise<LogEnrichi[]> {
   if (error) throw new Error(error.message);
   if (!logs || logs.length === 0) return [];
 
-  const adminIds = [...new Set(logs.map((log) => log.admin_id))];
+  const adminIds = [
+    ...new Set(logs.map((log) => log.admin_id).filter((id): id is string => Boolean(id))),
+  ];
   const commercantIds = [
     ...new Set(logs.map((log) => log.commercant_id).filter((id): id is string => Boolean(id))),
   ];
@@ -40,7 +42,7 @@ export async function listAdminLogs(): Promise<LogEnrichi[]> {
 
   return logs.map((log) => ({
     ...log,
-    adminNom: nomAdmin.get(log.admin_id) || "Admin",
+    adminNom: (log.admin_id ? nomAdmin.get(log.admin_id) : null) || "Admin",
     commercantNom: log.commercant_id ? (nomCommercant.get(log.commercant_id) ?? null) : null,
   }));
 }

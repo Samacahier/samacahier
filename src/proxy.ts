@@ -11,6 +11,8 @@ const COMMERCANT_PATHS = [
   "/rapports",
   "/clients",
   "/fournisseurs",
+  "/profil",
+  "/parametres",
 ];
 
 export async function proxy(request: NextRequest) {
