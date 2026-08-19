@@ -43,26 +43,46 @@ export default function ComparatifTable({ lignes }: ComparatifTableProps) {
       {lignes.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucun commerçant.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-card p-4">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-line">
-                <th className="py-2 text-ink-muted">Commerce</th>
-                <th className="py-2 text-ink-muted">CA du mois</th>
-                <th className="py-2 text-ink-muted">Ventes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lignes.map((ligne) => (
-                <tr key={ligne.commercantId} className="border-b border-line">
-                  <td className="py-2 text-ink">{ligne.nomCommerce}</td>
-                  <td className="py-2 text-ink">{ligne.ca.toLocaleString("fr-FR")} FCFA</td>
-                  <td className="py-2 text-ink">{ligne.nombreVentes}</td>
+        <>
+          {/* Mobile/tablette (<1024px) : cartes empilées */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {lignes.map((ligne) => (
+              <div key={ligne.commercantId} className="rounded-2xl bg-card p-4">
+                <p className="mb-2 font-medium text-ink">{ligne.nomCommerce}</p>
+                <div className="flex items-center justify-between text-sm text-ink-muted">
+                  <span>CA du mois</span>
+                  <span className="font-medium text-ink">{ligne.ca.toLocaleString("fr-FR")} FCFA</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-ink-muted">
+                  <span>Ventes</span>
+                  <span className="font-medium text-ink">{ligne.nombreVentes}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop (≥1024px) : table */}
+          <div className="hidden overflow-x-auto rounded-2xl bg-card p-4 lg:block">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-line">
+                  <th className="py-2 text-ink-muted">Commerce</th>
+                  <th className="py-2 text-ink-muted">CA du mois</th>
+                  <th className="py-2 text-ink-muted">Ventes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {lignes.map((ligne) => (
+                  <tr key={ligne.commercantId} className="border-b border-line">
+                    <td className="py-2 text-ink">{ligne.nomCommerce}</td>
+                    <td className="py-2 text-ink">{ligne.ca.toLocaleString("fr-FR")} FCFA</td>
+                    <td className="py-2 text-ink">{ligne.nombreVentes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
