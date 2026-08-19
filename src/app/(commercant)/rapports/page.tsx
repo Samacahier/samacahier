@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCommercant } from "@/lib/commercants/queries";
 import {
   getRapportPeriode,
   getApercuGlobal,
@@ -11,6 +12,11 @@ import PrintButton from "@/components/ui/PrintButton";
 import BilanMensuelCard from "@/components/rapports/BilanMensuelCard";
 import ApercuGlobalSection from "@/components/rapports/ApercuGlobalSection";
 import VentesParStatutSection from "@/components/rapports/VentesParStatutSection";
+import DocumentImprimable from "@/components/rapports/document/DocumentImprimable";
+import DocumentEntete from "@/components/rapports/document/DocumentEntete";
+import DocumentTitre from "@/components/rapports/document/DocumentTitre";
+import DocumentStatsGrid from "@/components/rapports/document/DocumentStatsGrid";
+import DocumentPied from "@/components/rapports/document/DocumentPied";
 
 type RapportsPageProps = {
   searchParams: Promise<{ debut?: string; fin?: string }>;
@@ -47,6 +53,15 @@ function aujourdHui(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function formaterMontant(montant: number): string {
+  return `${montant.toLocaleString("fr-FR")} FCFA`;
+}
+
+function formaterDateFr(dateIso: string): string {
+  const [annee, mois, jour] = dateIso.split("-");
+  return `${jour}/${mois}/${annee}`;
+}
+
 export default async function RapportsPage({ searchParams }: RapportsPageProps) {
   const params = await searchParams;
   const debut = params.debut ?? premierJourMoisEnCours();
@@ -58,25 +73,25 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [rapport, apercuGlobal, ventesParStatut] = user
+  const [rapport, apercuGlobal, ventesParStatut, commercant] = user
     ? await Promise.all([
         getRapportPeriode(user.id, debut, fin),
         getApercuGlobal(user.id),
         getVentesParStatut(user.id, debut, fin),
+        getCommercant(user.id),
       ])
-    : [RAPPORT_VIDE, APERCU_VIDE, STATUTS_VIDE];
+    : [RAPPORT_VIDE, APERCU_VIDE, STATUTS_VIDE, null];
 
   return (
-    <main
-      id="rapport-imprimable"
-      className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12"
-    >
+    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-semibold text-ink">Rapport</h1>
         <PrintButton />
       </div>
 
-      <BilanMensuelCard moisParDefaut={moisEnCours} />
+      <div className="print:hidden">
+        <BilanMensuelCard moisParDefaut={moisEnCours} />
+      </div>
 
       <form method="get" className="flex items-end gap-3 print:hidden">
         <label className="flex flex-col gap-1 text-sm text-ink-muted">
@@ -105,47 +120,42 @@ export default async function RapportsPage({ searchParams }: RapportsPageProps) 
         </button>
       </form>
 
-      <div className="rounded-2xl bg-card p-8 text-ink print:border print:border-line print:bg-white print:p-6">
-        <p className="mb-6 text-sm text-ink-muted">
-          Période du {debut} au {fin}
-        </p>
+      <DocumentImprimable id="rapport-imprimable">
+        <DocumentEntete
+          nomCommerce={commercant?.nom_commerce ?? "Commerce"}
+          activite={commercant?.activite ?? null}
+          ville={commercant?.ville_region ?? null}
+          telephone={commercant?.telephone ?? null}
+          genereLe={new Date()}
+        />
 
-        <dl className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-          <div>
-            <dt className="text-sm text-ink-muted">Total ventes</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.totalVentes.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Total dépenses</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.totalDepenses.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Solde de caisse</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.soldeCaisse.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Créances en cours</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.totalCreancesEnCours.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-        </dl>
-      </div>
+        <DocumentTitre
+          titre="Rapport de période"
+          sousTitre={`Du ${formaterDateFr(debut)} au ${formaterDateFr(fin)}`}
+        />
 
-      <VentesParStatutSection statuts={ventesParStatut} />
+        <DocumentStatsGrid
+          stats={[
+            { label: "Chiffre d'affaires", valeur: formaterMontant(rapport.totalVentes) },
+            { label: "Dépenses", valeur: formaterMontant(rapport.totalDepenses) },
+            { label: "Solde de caisse", valeur: formaterMontant(rapport.soldeCaisse) },
+            { label: "Créances en cours", valeur: formaterMontant(rapport.totalCreancesEnCours) },
+          ]}
+        />
 
-      <ApercuGlobalSection
-        chiffreAffaires={apercuGlobal.chiffreAffaires}
-        totalDepenses={apercuGlobal.totalDepenses}
-        totalCreancesEnCours={apercuGlobal.totalCreancesEnCours}
-        margeBrute={apercuGlobal.margeBrute}
-      />
+        <div className="mb-[28px]">
+          <ApercuGlobalSection
+            chiffreAffaires={apercuGlobal.chiffreAffaires}
+            totalDepenses={apercuGlobal.totalDepenses}
+            totalCreancesEnCours={apercuGlobal.totalCreancesEnCours}
+            margeBrute={apercuGlobal.margeBrute}
+          />
+        </div>
+
+        <VentesParStatutSection statuts={ventesParStatut} />
+
+        <DocumentPied />
+      </DocumentImprimable>
     </main>
   );
 }

@@ -10,42 +10,38 @@ const LABELS: Record<keyof VentesParStatut, string> = {
   impaye: "Impayé",
 };
 
-const BADGE: Record<keyof VentesParStatut, string> = {
-  paye: "bg-status-paye-bg text-status-paye",
-  credit: "bg-status-credit-bg text-status-credit",
-  impaye: "bg-status-impaye-bg text-status-impaye",
-};
-
 export default function VentesParStatutSection({ statuts }: VentesParStatutSectionProps) {
   return (
-    <div className="rounded-2xl bg-card p-6 text-ink print:border print:border-line print:bg-white print:p-6">
-      <p className="mb-4 text-xs font-medium tracking-wide text-ink-muted uppercase">
+    <table className="w-full border-collapse text-left">
+      <caption className="mb-[10px] text-left text-[13px] font-bold text-[#1a1a1a]">
         Ventes par statut
-      </p>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-line">
-            <th className="py-2 text-ink-muted">Statut</th>
-            <th className="py-2 text-ink-muted">Nombre</th>
-            <th className="py-2 text-ink-muted">Montant</th>
+      </caption>
+      <thead>
+        <tr>
+          <th className="border-b-[1.5px] border-[#1a1a1a] py-2 text-[10.5px] tracking-[0.05em] text-[#888] uppercase">
+            Statut
+          </th>
+          <th className="border-b-[1.5px] border-[#1a1a1a] py-2 text-[10.5px] tracking-[0.05em] text-[#888] uppercase">
+            Nombre
+          </th>
+          <th className="border-b-[1.5px] border-[#1a1a1a] py-2 text-right text-[10.5px] tracking-[0.05em] text-[#888] uppercase">
+            Montant
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {(Object.keys(LABELS) as (keyof VentesParStatut)[]).map((statut) => (
+          <tr key={statut}>
+            <td className="border-b border-[#e2e2e2] py-[10px] text-[13px]">{LABELS[statut]}</td>
+            <td className="border-b border-[#e2e2e2] py-[10px] text-[13px]">
+              {statuts[statut].nombre}
+            </td>
+            <td className="font-jetbrains border-b border-[#e2e2e2] py-[10px] text-right text-[13px]">
+              {statuts[statut].montant.toLocaleString("fr-FR")} FCFA
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {(Object.keys(LABELS) as (keyof VentesParStatut)[]).map((statut) => (
-            <tr key={statut} className="border-b border-line">
-              <td className="py-2">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${BADGE[statut]}`}
-                >
-                  {LABELS[statut]}
-                </span>
-              </td>
-              <td className="py-2">{statuts[statut].nombre}</td>
-              <td className="py-2">{statuts[statut].montant.toLocaleString("fr-FR")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 }

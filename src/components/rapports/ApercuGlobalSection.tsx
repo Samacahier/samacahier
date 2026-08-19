@@ -1,9 +1,15 @@
+import DocumentStatsGrid from "@/components/rapports/document/DocumentStatsGrid";
+
 type ApercuGlobalSectionProps = {
   chiffreAffaires: number;
   totalDepenses: number;
   totalCreancesEnCours: number;
   margeBrute: number;
 };
+
+function formaterMontant(montant: number): string {
+  return `${montant.toLocaleString("fr-FR")} FCFA`;
+}
 
 export default function ApercuGlobalSection({
   chiffreAffaires,
@@ -12,34 +18,18 @@ export default function ApercuGlobalSection({
   margeBrute,
 }: ApercuGlobalSectionProps) {
   return (
-    <div className="rounded-2xl bg-card p-6 text-ink print:border print:border-line print:bg-white print:p-6">
-      <p className="mb-4 text-xs font-medium tracking-wide text-ink-muted uppercase">
+    <div>
+      <p className="mb-[10px] text-[13px] font-bold text-[#1a1a1a]">
         Aperçu global (depuis le début)
       </p>
-      <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div>
-          <dt className="text-sm text-ink-muted">Chiffre d&apos;affaires</dt>
-          <dd className="text-xl font-semibold">
-            {chiffreAffaires.toLocaleString("fr-FR")} FCFA
-          </dd>
-        </div>
-        <div>
-          <dt className="text-sm text-ink-muted">Créances</dt>
-          <dd className="text-xl font-semibold">
-            {totalCreancesEnCours.toLocaleString("fr-FR")} FCFA
-          </dd>
-        </div>
-        <div>
-          <dt className="text-sm text-ink-muted">Dépenses</dt>
-          <dd className="text-xl font-semibold">
-            {totalDepenses.toLocaleString("fr-FR")} FCFA
-          </dd>
-        </div>
-        <div>
-          <dt className="text-sm text-ink-muted">Marge brute</dt>
-          <dd className="text-xl font-semibold">{margeBrute.toLocaleString("fr-FR")} FCFA</dd>
-        </div>
-      </dl>
+      <DocumentStatsGrid
+        stats={[
+          { label: "Chiffre d'affaires", valeur: formaterMontant(chiffreAffaires) },
+          { label: "Créances", valeur: formaterMontant(totalCreancesEnCours) },
+          { label: "Dépenses", valeur: formaterMontant(totalDepenses) },
+          { label: "Marge brute", valeur: formaterMontant(margeBrute) },
+        ]}
+      />
     </div>
   );
 }

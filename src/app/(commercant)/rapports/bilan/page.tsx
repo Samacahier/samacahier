@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getCommercant } from "@/lib/commercants/queries";
 import {
   getRapportPeriode,
   getMargeBrute,
@@ -9,6 +10,11 @@ import {
   type VentesParStatut,
 } from "@/lib/rapports/queries";
 import PrintButton from "@/components/ui/PrintButton";
+import DocumentImprimable from "@/components/rapports/document/DocumentImprimable";
+import DocumentEntete from "@/components/rapports/document/DocumentEntete";
+import DocumentTitre from "@/components/rapports/document/DocumentTitre";
+import DocumentStatsGrid from "@/components/rapports/document/DocumentStatsGrid";
+import DocumentPied from "@/components/rapports/document/DocumentPied";
 import VentesParStatutSection from "@/components/rapports/VentesParStatutSection";
 
 type BilanMensuelPageProps = {
@@ -40,6 +46,20 @@ function bornesDuMois(mois: string) {
   return { debut, fin };
 }
 
+function formaterMoisLabel(mois: string): string {
+  const [annee, moisNumero] = mois.split("-").map(Number);
+  const label = new Date(Date.UTC(annee, moisNumero - 1, 1)).toLocaleDateString("fr-FR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function formaterMontant(montant: number): string {
+  return `${montant.toLocaleString("fr-FR")} FCFA`;
+}
+
 export default async function BilanMensuelPage({ searchParams }: BilanMensuelPageProps) {
   const params = await searchParams;
   const mois = params.mois ?? moisEnCoursParDefaut();
@@ -50,16 +70,17 @@ export default async function BilanMensuelPage({ searchParams }: BilanMensuelPag
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [rapport, margeBrute, ventesParStatut] = user
+  const [rapport, margeBrute, ventesParStatut, commercant] = user
     ? await Promise.all([
         getRapportPeriode(user.id, debut, fin),
         getMargeBrute(user.id, debut, fin),
         getVentesParStatut(user.id, debut, fin),
+        getCommercant(user.id),
       ])
-    : [RAPPORT_VIDE, 0, STATUTS_VIDE];
+    : [RAPPORT_VIDE, 0, STATUTS_VIDE, null];
 
   return (
-    <div id="bilan-imprimable" className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
       <Link
         href="/rapports"
         className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink print:hidden"
@@ -73,44 +94,31 @@ export default async function BilanMensuelPage({ searchParams }: BilanMensuelPag
         <PrintButton />
       </div>
 
-      <div className="rounded-2xl bg-card p-8 text-ink print:border print:border-line print:bg-white print:p-6">
-        <p className="mb-6 text-sm text-ink-muted">Période : {mois}</p>
+      <DocumentImprimable id="bilan-imprimable">
+        <DocumentEntete
+          nomCommerce={commercant?.nom_commerce ?? "Commerce"}
+          activite={commercant?.activite ?? null}
+          ville={commercant?.ville_region ?? null}
+          telephone={commercant?.telephone ?? null}
+          genereLe={new Date()}
+        />
 
-        <dl className="grid grid-cols-2 gap-6">
-          <div>
-            <dt className="text-sm text-ink-muted">Chiffre d&apos;affaires</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.totalVentes.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Dépenses</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.totalDepenses.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Solde de caisse (mouvements du mois)</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.soldeCaisse.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Créances en cours</dt>
-            <dd className="text-xl font-semibold">
-              {rapport.totalCreancesEnCours.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-muted">Marge brute</dt>
-            <dd className="text-xl font-semibold">
-              {margeBrute.toLocaleString("fr-FR")} FCFA
-            </dd>
-          </div>
-        </dl>
-      </div>
+        <DocumentTitre titre="Bilan mensuel" sousTitre={`Période : ${formaterMoisLabel(mois)}`} />
 
-      <VentesParStatutSection statuts={ventesParStatut} />
+        <DocumentStatsGrid
+          stats={[
+            { label: "Chiffre d'affaires", valeur: formaterMontant(rapport.totalVentes) },
+            { label: "Dépenses", valeur: formaterMontant(rapport.totalDepenses) },
+            { label: "Solde de caisse", valeur: formaterMontant(rapport.soldeCaisse) },
+            { label: "Créances en cours", valeur: formaterMontant(rapport.totalCreancesEnCours) },
+            { label: "Marge brute", valeur: formaterMontant(margeBrute) },
+          ]}
+        />
+
+        <VentesParStatutSection statuts={ventesParStatut} />
+
+        <DocumentPied />
+      </DocumentImprimable>
     </div>
   );
 }
