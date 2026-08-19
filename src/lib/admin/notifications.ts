@@ -1,6 +1,9 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rendreEmailHtml } from "@/lib/email/template";
+import { envoyerEmail } from "@/lib/email/resend";
+import { obtenirOrigineSite } from "@/lib/site-url";
 
 // Notifie chaque admin ayant activé "Nouveau commerçant inscrit" (Mon
 // compte > Notifications), au moment où l'inscription aboutit (appelé
@@ -8,6 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // service_role : le nouveau commerçant n'a pas le droit de lire les
 // profils admin via RLS.
 export async function notifierAdminNouveauCommercant(
+  commercantId: string,
   nomCommerce: string,
   activite: string | null,
 ) {
@@ -21,24 +25,32 @@ export async function notifierAdminNouveauCommercant(
 
   if (!admins || admins.length === 0) return;
 
+  const origine = await obtenirOrigineSite();
+  const dateInscription = new Date().toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const html = rendreEmailHtml({
+    eyebrow: "Nouveau commerçant",
+    titre: `${nomCommerce} vient de s'inscrire`,
+    intro: "Un nouveau commerçant a créé son compte sur Sama Cahier. Voici un récapitulatif rapide.",
+    recap: `<strong>Commerce :</strong> ${nomCommerce}<br><strong>Activité :</strong> ${activite ?? "Non renseignée"}<br><strong>Inscrit le :</strong> ${dateInscription}`,
+    bouton: { label: "Voir sa fiche →", href: `${origine}/admin/commercants/${commercantId}` },
+    pied: 'Vous recevez cet e-mail car les notifications "Nouveau commerçant" sont activées dans votre compte Sama Cahier.',
+  });
+
   await Promise.all(
     admins.map(async ({ id }) => {
       const { data } = await admin.auth.admin.getUserById(id);
       const email = data.user?.email;
       if (!email) return;
 
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "Sama Cahier <contact@samacahier.sn>",
-          to: [email],
-          subject: "Nouveau commerçant inscrit sur Sama Cahier",
-          text: `${nomCommerce}${activite ? ` (${activite})` : ""} vient de créer un compte.`,
-        }),
+      await envoyerEmail({
+        to: [email],
+        subject: "Nouveau commerçant inscrit sur Sama Cahier",
+        html,
       });
     }),
   );

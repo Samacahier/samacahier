@@ -112,6 +112,13 @@ export default function LoginPage() {
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
+
+        <Link
+          href="/forgot-password"
+          className="text-center text-sm font-semibold text-accent-dark underline"
+        >
+          Mot de passe oublié ?
+        </Link>
       </form>
     </AuthShell>
   );

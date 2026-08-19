@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCommercant, updateCommercant } from "@/lib/commercants/queries";
+import { rendreEmailHtml } from "@/lib/email/template";
+import { envoyerEmail } from "@/lib/email/resend";
 
 async function verifierAdmin(): Promise<{ error: string | null; adminId: string | null }> {
   const supabase = await createClient();
@@ -116,24 +118,12 @@ export async function sendCommercantEmail(commercantId: string, objet: string, m
   const { data, error: userError } = await admin.auth.admin.getUserById(commercantId);
   if (userError || !data.user?.email) return { error: "Email du commerçant introuvable." };
 
-  const reponse = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Sama Cahier <contact@samacahier.sn>",
-      to: [data.user.email],
-      subject: objet,
-      text: message,
-    }),
+  const html = rendreEmailHtml({
+    eyebrow: "Message de l'administration",
+    titre: objet,
+    intro: message.replace(/\n/g, "<br>"),
+    pied: "Vous recevez cet e-mail de la part de l'administration de Sama Cahier.",
   });
 
-  if (!reponse.ok) {
-    const detail = await reponse.json().catch(() => null);
-    return { error: detail?.message ?? "Échec de l'envoi de l'email." };
-  }
-
-  return { error: null };
+  return envoyerEmail({ to: [data.user.email], subject: objet, html });
 }

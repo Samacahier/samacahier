@@ -114,7 +114,7 @@ export default function RegisterPage() {
 
     // Le trigger handle_new_user() a déjà créé profiles + commercants à ce
     // stade (côté Supabase, avant le retour de signUp) — safe de notifier.
-    await notifierAdminNouveauCommercant(values.nomCommerce, values.activite || null);
+    await notifierAdminNouveauCommercant(data.user.id, values.nomCommerce, values.activite || null);
 
     // L'upload du logo nécessite une session active (RLS du bucket "logos") :
     // seulement possible si l'inscription est immédiatement confirmée.
