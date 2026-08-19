@@ -68,8 +68,8 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-2xl bg-card p-4">
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Client
           <input
             type="text"
@@ -80,7 +80,7 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Téléphone
           <input
             type="tel"
@@ -91,8 +91,8 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
         </label>
       </div>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Montant dû (FCFA)
           <input
             type="number"
@@ -105,7 +105,7 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Montant remboursé (FCFA)
           <input
             type="number"
@@ -118,8 +118,8 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
         </label>
       </div>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Statut
           <select
             value={statut}
@@ -136,7 +136,7 @@ export default function CreanceForm({ creance, onSuccess, onCancel }: CreanceFor
           </select>
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Échéance
           <input
             type="date"
