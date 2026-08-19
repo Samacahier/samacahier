@@ -177,18 +177,18 @@ export default function VenteForm({
         )}
       </div>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Quantité
           <NumberField min={0} required value={quantite} onChange={setQuantite} className={CHAMP} />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Prix unitaire
           <NumberField min={0} required value={prixUnitaire} onChange={setPrixUnitaire} className={CHAMP} />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="col-span-2 flex flex-col gap-1 text-sm text-ink-muted sm:col-span-1">
           Remise
           <NumberField min={0} value={remise} onChange={setRemise} className={CHAMP} />
         </label>
