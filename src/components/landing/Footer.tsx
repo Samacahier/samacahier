@@ -41,10 +41,10 @@ export default function Footer() {
               Contact
             </div>
             <a
-              href="mailto:contact@samacahier.sn"
+              href="mailto:contact@sama-cahier.com"
               className="text-[14.5px] text-ink-muted transition-colors hover:text-accent-dark"
             >
-              contact@samacahier.sn
+              contact@sama-cahier.com
             </a>
             <span className="text-[14.5px] text-ink-muted">Dakar, Sénégal</span>
           </div>
