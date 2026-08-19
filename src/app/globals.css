@@ -71,17 +71,26 @@ body {
     color: #000000;
   }
 
-  /* Reçu de vente : n'imprime que #recu-imprimable, où qu'il soit dans le
-     DOM (modale ou page /ventes/[id]/recu). Sans effet si l'élément est
-     absent (rapports A4 notamment, inchangés). */
-  body:has(#recu-imprimable) * {
+  /* Documents imprimables (reçu de vente, rapport de période, bilan
+     mensuel) : n'imprime que le conteneur ciblé, où qu'il soit dans le
+     DOM, en masquant tout le reste (nav basse, en-tête, sidebar compris).
+     Sans effet si l'élément est absent. */
+  body:has(#recu-imprimable) *,
+  body:has(#rapport-imprimable) *,
+  body:has(#bilan-imprimable) * {
     visibility: hidden;
   }
   body:has(#recu-imprimable) #recu-imprimable,
-  body:has(#recu-imprimable) #recu-imprimable * {
+  body:has(#recu-imprimable) #recu-imprimable *,
+  body:has(#rapport-imprimable) #rapport-imprimable,
+  body:has(#rapport-imprimable) #rapport-imprimable *,
+  body:has(#bilan-imprimable) #bilan-imprimable,
+  body:has(#bilan-imprimable) #bilan-imprimable * {
     visibility: visible;
   }
-  #recu-imprimable {
+  #recu-imprimable,
+  #rapport-imprimable,
+  #bilan-imprimable {
     position: absolute;
     top: 0;
     left: 0;

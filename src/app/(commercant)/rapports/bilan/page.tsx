@@ -59,7 +59,7 @@ export default async function BilanMensuelPage({ searchParams }: BilanMensuelPag
     : [RAPPORT_VIDE, 0, STATUTS_VIDE];
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
+    <div id="bilan-imprimable" className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
       <Link
         href="/rapports"
         className="flex w-fit items-center gap-1 text-sm text-ink-muted hover:text-ink print:hidden"
@@ -73,7 +73,7 @@ export default async function BilanMensuelPage({ searchParams }: BilanMensuelPag
         <PrintButton />
       </div>
 
-      <div className="rounded-2xl bg-card p-8 text-ink print:border print:border-line print:p-6">
+      <div className="rounded-2xl bg-card p-8 text-ink print:border print:border-line print:bg-white print:p-6">
         <p className="mb-6 text-sm text-ink-muted">Période : {mois}</p>
 
         <dl className="grid grid-cols-2 gap-6">

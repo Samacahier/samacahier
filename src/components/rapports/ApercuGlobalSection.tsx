@@ -12,7 +12,7 @@ export default function ApercuGlobalSection({
   margeBrute,
 }: ApercuGlobalSectionProps) {
   return (
-    <div className="rounded-2xl bg-card p-6 text-ink print:border print:border-line print:p-6">
+    <div className="rounded-2xl bg-card p-6 text-ink print:border print:border-line print:bg-white print:p-6">
       <p className="mb-4 text-xs font-medium tracking-wide text-ink-muted uppercase">
         Aperçu global (depuis le début)
       </p>
