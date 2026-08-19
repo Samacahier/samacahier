@@ -2,16 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCommercant } from "@/lib/commercants/queries";
 import { getDashboardStats } from "@/lib/dashboard/queries";
-import { listVentes } from "@/lib/ventes/queries";
-import { listStocks } from "@/lib/stocks/queries";
-import { listCreances } from "@/lib/creances/queries";
-import { listCaisse } from "@/lib/caisse/queries";
 import StatCard from "@/components/dashboard/StatCard";
 import CommercantToggleActif from "@/components/admin/CommercantToggleActif";
-import CommercantEditForm from "@/components/admin/CommercantEditForm";
-import CommercantResetPassword from "@/components/admin/CommercantResetPassword";
 import CommercantSendEmail from "@/components/admin/CommercantSendEmail";
-import SectionTable from "@/components/admin/SectionTable";
 import CommercantAvatar from "@/components/admin/CommercantAvatar";
 
 export default async function CommercantDetailPage({
@@ -23,13 +16,7 @@ export default async function CommercantDetailPage({
   const commercant = await getCommercant(id);
   if (!commercant) notFound();
 
-  const [stats, ventes, stocks, creances, caisse] = await Promise.all([
-    getDashboardStats(id),
-    listVentes(id),
-    listStocks(id),
-    listCreances(id),
-    listCaisse(id),
-  ]);
+  const stats = await getDashboardStats(id);
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
@@ -76,80 +63,22 @@ export default async function CommercantDetailPage({
         />
       </div>
 
+      <p className="text-xs text-ink-muted">
+        Indicateurs agrégés uniquement — les données détaillées (ventes, stock, créances,
+        mouvements de caisse) appartiennent au commerçant et ne sont pas consultables depuis
+        l&apos;administration.
+      </p>
+
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl bg-card p-4">
-          <h2 className="mb-3 font-semibold text-ink">Infos du commerce</h2>
-          <CommercantEditForm
-            commercantId={id}
-            nomCommerce={commercant.nom_commerce}
-            activite={commercant.activite}
-          />
+          <h2 className="mb-3 font-semibold text-ink">Compte</h2>
+          <CommercantToggleActif commercantId={id} actif={commercant.actif} />
         </div>
-
-        <div className="flex flex-col gap-4">
-          <div className="rounded-2xl bg-card p-4">
-            <h2 className="mb-3 font-semibold text-ink">Compte</h2>
-            <CommercantToggleActif commercantId={id} actif={commercant.actif} />
-          </div>
-          <div className="rounded-2xl bg-card p-4">
-            <h2 className="mb-3 font-semibold text-ink">Mot de passe</h2>
-            <CommercantResetPassword commercantId={id} />
-          </div>
-          <div className="rounded-2xl bg-card p-4">
-            <h2 className="mb-3 font-semibold text-ink">Envoyer un email</h2>
-            <CommercantSendEmail commercantId={id} />
-          </div>
+        <div className="rounded-2xl bg-card p-4">
+          <h2 className="mb-3 font-semibold text-ink">Envoyer un email</h2>
+          <CommercantSendEmail commercantId={id} />
         </div>
       </div>
-
-      <SectionTable
-        titre={`Ventes (${ventes.length})`}
-        colonnes={["Description", "Quantité", "Prix unitaire", "Total", "Statut", "Date"]}
-        lignes={ventes.map((vente) => [
-          vente.description,
-          String(vente.quantite),
-          `${vente.prix_unitaire.toLocaleString("fr-FR")} FCFA`,
-          `${vente.montant_total.toLocaleString("fr-FR")} FCFA`,
-          vente.statut,
-          vente.date_vente,
-        ])}
-      />
-
-      <SectionTable
-        titre={`Stock (${stocks.length})`}
-        colonnes={["Produit", "Quantité", "Unité", "Prix vente", "Seuil alerte"]}
-        lignes={stocks.map((stock) => [
-          stock.nom_article,
-          String(stock.quantite),
-          stock.unite,
-          stock.prix_vente ? `${stock.prix_vente.toLocaleString("fr-FR")} FCFA` : "—",
-          String(stock.seuil_alerte),
-        ])}
-      />
-
-      <SectionTable
-        titre={`Créances (${creances.length})`}
-        colonnes={["Client", "Montant", "Remboursé", "Statut", "Échéance"]}
-        lignes={creances.map((creance) => [
-          creance.client_nom,
-          `${creance.montant.toLocaleString("fr-FR")} FCFA`,
-          `${creance.montant_rembourse.toLocaleString("fr-FR")} FCFA`,
-          creance.statut,
-          creance.date_echeance ?? "—",
-        ])}
-      />
-
-      <SectionTable
-        titre={`Mouvements de caisse (${caisse.length})`}
-        colonnes={["Type", "Poche", "Montant", "Motif", "Date"]}
-        lignes={caisse.map((mouvement) => [
-          mouvement.type_mouvement,
-          mouvement.type_poche,
-          `${mouvement.montant.toLocaleString("fr-FR")} FCFA`,
-          mouvement.motif ?? "—",
-          mouvement.date_mouvement,
-        ])}
-      />
     </main>
   );
 }

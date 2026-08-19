@@ -42,31 +42,6 @@ async function enregistrerLog(
     .insert({ admin_id: adminId, action, commercant_id: commercantId, detail });
 }
 
-// Réinitialise le mot de passe d'un commerçant depuis sa fiche admin.
-// Utilise l'API admin Supabase (clé service_role, jamais exposée au
-// client) — appelable uniquement par un admin authentifié.
-export async function resetCommercantPassword(commercantId: string, nouveauMotDePasse: string) {
-  const { error: erreurAuth, adminId } = await verifierAdmin();
-  if (erreurAuth || !adminId) return { error: erreurAuth };
-
-  const admin = createAdminClient();
-  const { error } = await admin.auth.admin.updateUserById(commercantId, {
-    password: nouveauMotDePasse,
-  });
-
-  if (error) return { error: error.message };
-
-  const commercant = await getCommercant(commercantId);
-  await enregistrerLog(
-    adminId,
-    "reinitialisation_mot_de_passe",
-    commercantId,
-    `Mot de passe réinitialisé pour ${commercant?.nom_commerce ?? commercantId}`,
-  );
-
-  return { error: null };
-}
-
 // Active ou désactive un compte commerçant, journalisé dans admin_logs.
 export async function toggleCommercantActif(commercantId: string, actif: boolean) {
   const { error: erreurAuth, adminId } = await verifierAdmin();
@@ -81,28 +56,6 @@ export async function toggleCommercantActif(commercantId: string, actif: boolean
     actif ? "activation" : "desactivation",
     commercantId,
     `${actif ? "Compte réactivé" : "Compte désactivé"} — ${commercant?.nom_commerce ?? commercantId}`,
-  );
-
-  return { error: null };
-}
-
-// Corrige le nom du commerce / l'activité d'un commerçant, journalisé
-// dans admin_logs.
-export async function updateCommercantInfos(
-  commercantId: string,
-  input: { nom_commerce: string; activite: string | null },
-) {
-  const { error: erreurAuth, adminId } = await verifierAdmin();
-  if (erreurAuth || !adminId) return { error: erreurAuth };
-
-  const { error } = await updateCommercant(commercantId, input);
-  if (error) return { error };
-
-  await enregistrerLog(
-    adminId,
-    "correction_infos",
-    commercantId,
-    `Infos corrigées — ${input.nom_commerce}${input.activite ? " / " + input.activite : ""}`,
   );
 
   return { error: null };
