@@ -151,7 +151,7 @@ export default function VenteForm({
           <select
             value={clientId}
             onChange={(event) => setClientId(event.target.value)}
-            className={`flex-1 ${CHAMP}`}
+            className={`min-w-0 flex-1 ${CHAMP}`}
           >
             <option value="">Client comptant</option>
             {clientsDisponibles.map((client) => (
@@ -196,13 +196,13 @@ export default function VenteForm({
 
       <div className="flex flex-col gap-1 text-sm text-ink-muted">
         <span>Statut de la vente</span>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {STATUTS.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => setStatut(option.value)}
-              className={`flex-1 rounded-xl border px-3 py-2 ${
+              className={`rounded-xl border px-3 py-2 ${
                 statut === option.value
                   ? "border-accent bg-accent text-white"
                   : "border-line text-ink"
@@ -214,8 +214,8 @@ export default function VenteForm({
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Montant encaissé
           <NumberField
             min={0}
@@ -226,7 +226,7 @@ export default function VenteForm({
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1 text-sm text-ink-muted">
+        <label className="flex flex-col gap-1 text-sm text-ink-muted">
           Mode de paiement
           <select
             value={modePaiement}

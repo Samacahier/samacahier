@@ -37,7 +37,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="overflow-y-auto px-6 pb-2">{children}</div>
+        <div className="overflow-x-hidden overflow-y-auto px-6 pb-2">{children}</div>
 
         <div style={{ height: "max(18px, env(safe-area-inset-bottom))" }} />
       </div>
