@@ -12,6 +12,7 @@ import CommercantEditForm from "@/components/admin/CommercantEditForm";
 import CommercantResetPassword from "@/components/admin/CommercantResetPassword";
 import CommercantSendEmail from "@/components/admin/CommercantSendEmail";
 import SectionTable from "@/components/admin/SectionTable";
+import CommercantAvatar from "@/components/admin/CommercantAvatar";
 
 export default async function CommercantDetailPage({
   params,
@@ -37,6 +38,11 @@ export default async function CommercantDetailPage({
           ← Tous les commerçants
         </Link>
         <div className="flex items-center gap-3">
+          <CommercantAvatar
+            logoUrl={commercant.logo_url}
+            nom={commercant.nom_commerce}
+            taille="lg"
+          />
           <h1 className="text-2xl font-semibold text-ink">{commercant.nom_commerce}</h1>
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-semibold ${

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CommercantOverview } from "@/lib/dashboard/admin-queries";
+import CommercantAvatar from "@/components/admin/CommercantAvatar";
 
 type CommercantsTableProps = {
   overviews: CommercantOverview[];
@@ -92,8 +93,9 @@ export default function CommercantsTable({ overviews }: CommercantsTableProps) {
                   <td className="py-2">
                     <Link
                       href={`/admin/commercants/${commercant.id}`}
-                      className="font-medium text-ink hover:text-accent-dark"
+                      className="flex items-center gap-2.5 font-medium text-ink hover:text-accent-dark"
                     >
+                      <CommercantAvatar logoUrl={commercant.logo_url} nom={commercant.nom_commerce} />
                       {commercant.nom_commerce}
                     </Link>
                   </td>

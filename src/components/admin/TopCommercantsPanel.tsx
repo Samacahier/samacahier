@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CommercantOverview } from "@/lib/dashboard/admin-queries";
+import CommercantAvatar from "@/components/admin/CommercantAvatar";
 
 type TopCommercantsPanelProps = {
   overviews: CommercantOverview[];
@@ -39,6 +40,7 @@ export default function TopCommercantsPanel({ overviews }: TopCommercantsPanelPr
           <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-secondary text-[11px] font-bold text-ink-muted">
             {index + 1}
           </span>
+          <CommercantAvatar logoUrl={overview.commercant.logo_url} nom={overview.commercant.nom_commerce} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-semibold text-ink">
               {overview.commercant.nom_commerce}
