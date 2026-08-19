@@ -28,7 +28,7 @@ export default function MobileHeader({ nomCommerce, email }: MobileHeaderProps) 
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-line bg-card px-[18px] py-4 lg:hidden">
+      <header className="fixed inset-x-0 top-0 z-30 flex h-[72px] items-center justify-between border-b border-line bg-card px-6 lg:hidden">
         <span className="text-[17px] font-extrabold text-ink">
           Sama<span className="text-accent">·</span>Cahier
         </span>
