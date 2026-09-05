@@ -4,6 +4,7 @@ import KpiCard from "@/components/admin/KpiCard";
 import InscriptionsChart from "@/components/admin/InscriptionsChart";
 import TopCommercantsPanel from "@/components/admin/TopCommercantsPanel";
 import DernieresActionsPanel from "@/components/admin/DernieresActionsPanel";
+import AutoRefresh from "@/components/admin/AutoRefresh";
 
 export default async function AdminVueEnsemblePage() {
   const overviews = await listCommercantsOverview();
@@ -11,6 +12,7 @@ export default async function AdminVueEnsemblePage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
+      <AutoRefresh />
       <h1 className="text-2xl font-semibold text-ink">Vue d&apos;ensemble</h1>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
