@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getDashboardStats } from "@/lib/dashboard/queries";
 import type { Commercant } from "@/types/database";
 
 // Un commerçant sans vente/dépense/mouvement de caisse depuis ce seuil est
@@ -16,41 +15,62 @@ export type CommercantOverview = {
   derniereActivite: string | null;
 };
 
-async function getDerniereActivite(commercantId: string): Promise<string | null> {
+// Bornes [début, fin) du mois en cours, au format date ISO (YYYY-MM-DD).
+function bornesMoisEnCours() {
+  const maintenant = new Date();
+  const debut = new Date(
+    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), 1),
+  )
+    .toISOString()
+    .slice(0, 10);
+  const fin = new Date(
+    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth() + 1, 1),
+  )
+    .toISOString()
+    .slice(0, 10);
+  return { debut, fin };
+}
+
+// Dernière activité (vente, dépense ou mouvement de caisse) de chaque
+// commerçant, en 3 requêtes agrégées (une par table) au lieu d'une requête
+// par commerçant : chaque table est déjà triée par date décroissante, donc
+// la première ligne rencontrée pour un commerçant donné est sa plus récente.
+async function getDernieresActivitesParCommercant(): Promise<Map<string, string>> {
   const supabase = await createClient();
 
   const [ventes, depenses, caisse] = await Promise.all([
     supabase
       .from("ventes")
-      .select("created_at")
-      .eq("commercant_id", commercantId)
-      .order("created_at", { ascending: false })
-      .limit(1),
+      .select("commercant_id, created_at")
+      .order("created_at", { ascending: false }),
     supabase
       .from("depenses")
-      .select("created_at")
-      .eq("commercant_id", commercantId)
-      .order("created_at", { ascending: false })
-      .limit(1),
+      .select("commercant_id, created_at")
+      .order("created_at", { ascending: false }),
     supabase
       .from("caisse")
-      .select("created_at")
-      .eq("commercant_id", commercantId)
-      .order("created_at", { ascending: false })
-      .limit(1),
+      .select("commercant_id, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
-  const dates = [ventes.data?.[0], depenses.data?.[0], caisse.data?.[0]]
-    .map((ligne) => ligne?.created_at)
-    .filter((date): date is string => Boolean(date));
-
-  if (dates.length === 0) return null;
-  return dates.sort().at(-1) ?? null;
+  const dernieres = new Map<string, string>();
+  for (const lignes of [ventes.data, depenses.data, caisse.data]) {
+    for (const ligne of lignes ?? []) {
+      const actuelle = dernieres.get(ligne.commercant_id);
+      if (!actuelle || ligne.created_at > actuelle) {
+        dernieres.set(ligne.commercant_id, ligne.created_at);
+      }
+    }
+  }
+  return dernieres;
 }
 
 // Liste tous les commerçants (accessible uniquement à l'admin via RLS) avec
-// leurs indicateurs clés, calculés via la même logique que le dashboard
-// commerçant (getDashboardStats), grâce à public.is_admin() dans les policies.
+// leurs indicateurs clés. Chaque indicateur est calculé à partir de requêtes
+// agrégées sur l'ensemble des commerçants (nombre de requêtes constant),
+// plutôt que d'une requête par commerçant (pattern N+1 précédemment en place
+// via getDashboardStats/getDerniereActivite, responsable de la lenteur
+// perçue au chargement de la Vue d'ensemble et de la liste Commerçants).
 export async function listCommercantsOverview(): Promise<CommercantOverview[]> {
   const supabase = await createClient();
   const { data: commercants, error } = await supabase
@@ -59,23 +79,54 @@ export async function listCommercantsOverview(): Promise<CommercantOverview[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
+  if (!commercants || commercants.length === 0) return [];
 
-  return Promise.all(
-    (commercants ?? []).map(async (commercant) => {
-      const [stats, derniereActivite] = await Promise.all([
-        getDashboardStats(commercant.id),
-        getDerniereActivite(commercant.id),
-      ]);
-      return {
-        commercant,
-        chiffreAffaires: stats.chiffreAffaires,
-        // Solde combiné (Ma Caisse + Ma Poche) : équivalent au solde de
-        // caisse global affiché avant l'introduction des deux poches.
-        soldeCaisse: stats.soldeCaisse + stats.soldePoche,
-        derniereActivite,
-      };
-    }),
-  );
+  const { debut, fin } = bornesMoisEnCours();
+
+  const [ventesMois, caisse, dernieresActivites] = await Promise.all([
+    supabase
+      .from("ventes")
+      .select("commercant_id, montant_total")
+      .gte("date_vente", debut)
+      .lt("date_vente", fin),
+    supabase.from("caisse").select("commercant_id, type_mouvement, montant, type_poche"),
+    getDernieresActivitesParCommercant(),
+  ]);
+
+  const caParCommercant = new Map<string, number>();
+  for (const vente of ventesMois.data ?? []) {
+    caParCommercant.set(
+      vente.commercant_id,
+      (caParCommercant.get(vente.commercant_id) ?? 0) + vente.montant_total,
+    );
+  }
+
+  const mouvementsParCommercant = new Map<string, NonNullable<typeof caisse.data>>();
+  for (const mouvement of caisse.data ?? []) {
+    const liste = mouvementsParCommercant.get(mouvement.commercant_id) ?? [];
+    liste.push(mouvement);
+    mouvementsParCommercant.set(mouvement.commercant_id, liste);
+  }
+
+  return commercants.map((commercant) => {
+    const mouvements = mouvementsParCommercant.get(commercant.id) ?? [];
+    const soldeDune = (poche: "caisse" | "poche", initial: number) =>
+      initial +
+      mouvements
+        .filter((m) => m.type_poche === poche)
+        .reduce((solde, m) => solde + (m.type_mouvement === "entree" ? m.montant : -m.montant), 0);
+
+    return {
+      commercant,
+      chiffreAffaires: caParCommercant.get(commercant.id) ?? 0,
+      // Solde combiné (Ma Caisse + Ma Poche) : équivalent au solde de
+      // caisse global affiché avant l'introduction des deux poches.
+      soldeCaisse:
+        soldeDune("caisse", commercant.solde_initial_caisse ?? 0) +
+        soldeDune("poche", commercant.solde_initial_poche ?? 0),
+      derniereActivite: dernieresActivites.get(commercant.id) ?? null,
+    };
+  });
 }
 
 export type AdminKpis = {
@@ -88,17 +139,7 @@ export type AdminKpis = {
 
 async function getCaCumuleMoisPlateforme(): Promise<number> {
   const supabase = await createClient();
-  const maintenant = new Date();
-  const debut = new Date(
-    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), 1),
-  )
-    .toISOString()
-    .slice(0, 10);
-  const fin = new Date(
-    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth() + 1, 1),
-  )
-    .toISOString()
-    .slice(0, 10);
+  const { debut, fin } = bornesMoisEnCours();
 
   const { data } = await supabase
     .from("ventes")
