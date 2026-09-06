@@ -15,6 +15,74 @@ export type CommercantOverview = {
   derniereActivite: string | null;
 };
 
+export type CommercantsFiltre = "tous" | "actifs" | "desactives";
+export type CommercantsTri = "recent" | "ca" | "activite";
+
+export type CommercantsPageParams = {
+  page: number;
+  pageSize: number;
+  recherche?: string;
+  filtre?: CommercantsFiltre;
+  tri?: CommercantsTri;
+};
+
+export type CommercantsPageResult = {
+  overviews: CommercantOverview[];
+  total: number;
+};
+
+const COLONNE_TRI: Record<CommercantsTri, string> = {
+  recent: "created_at",
+  ca: "chiffre_affaires",
+  activite: "derniere_activite",
+};
+
+// Équivalent paginé de listCommercantsOverview, pour la liste /admin/dashboard
+// ("Commerçants") : filtre, tri et pagination sont appliqués côté base de
+// données via la vue admin_commercants_overview (chiffre_affaires,
+// solde_caisse et derniere_activite y sont déjà calculés par commerçant),
+// donc la requête ne ramène jamais que la page demandée — pas la liste
+// complète découpée ensuite en mémoire.
+export async function listCommercantsOverviewPage(
+  params: CommercantsPageParams,
+): Promise<CommercantsPageResult> {
+  const supabase = await createClient();
+  const { page, pageSize, recherche, filtre = "tous", tri = "recent" } = params;
+
+  let requete = supabase.from("admin_commercants_overview").select("*", { count: "exact" });
+
+  if (filtre === "actifs") requete = requete.eq("actif", true);
+  if (filtre === "desactives") requete = requete.eq("actif", false);
+
+  const termeRecherche = recherche?.trim().replace(/[,()]/g, "");
+  if (termeRecherche) {
+    requete = requete.or(
+      `nom_commerce.ilike.*${termeRecherche}*,activite.ilike.*${termeRecherche}*`,
+    );
+  }
+
+  const debut = (page - 1) * pageSize;
+  const fin = debut + pageSize - 1;
+
+  const { data, error, count } = await requete
+    .order(COLONNE_TRI[tri], { ascending: false, nullsFirst: false })
+    .range(debut, fin);
+
+  if (error) throw new Error(error.message);
+
+  const overviews: CommercantOverview[] = (data ?? []).map((ligne) => {
+    const { chiffre_affaires, solde_caisse, derniere_activite, ...commercant } = ligne;
+    return {
+      commercant,
+      chiffreAffaires: chiffre_affaires ?? 0,
+      soldeCaisse: solde_caisse ?? 0,
+      derniereActivite: derniere_activite,
+    };
+  });
+
+  return { overviews, total: count ?? 0 };
+}
+
 // Bornes [début, fin) du mois en cours, au format date ISO (YYYY-MM-DD).
 function bornesMoisEnCours() {
   const maintenant = new Date();

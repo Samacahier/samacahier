@@ -1,6 +1,7 @@
 "use client";
 
-import type { ComparatifCommercant } from "@/lib/rapports/admin-queries";
+import { useState } from "react";
+import { getComparatifCommercants, type ComparatifCommercant } from "@/lib/rapports/admin-queries";
 
 type ComparatifTableProps = {
   lignes: ComparatifCommercant[];
@@ -10,7 +11,7 @@ function echapperCsv(valeur: string): string {
   return `"${valeur.replace(/"/g, '""')}"`;
 }
 
-function exporterCsv(lignes: ComparatifCommercant[]) {
+function telechargerCsv(lignes: ComparatifCommercant[]) {
   const entetes = ["Commerce", "CA du mois (FCFA)", "Nombre de ventes"];
   const corps = lignes.map((ligne) =>
     [echapperCsv(ligne.nomCommerce), ligne.ca, ligne.nombreVentes].join(","),
@@ -27,16 +28,32 @@ function exporterCsv(lignes: ComparatifCommercant[]) {
 }
 
 export default function ComparatifTable({ lignes }: ComparatifTableProps) {
+  const [exportEnCours, setExport] = useState(false);
+
+  // L'export porte sur TOUS les commerçants (pas seulement la page affichée
+  // à l'écran) : rechargé à la demande plutôt que gardé en mémoire en
+  // permanence, pour que le chargement de la page reste borné à PAR_PAGE.
+  async function handleExport() {
+    setExport(true);
+    try {
+      const toutesLesLignes = await getComparatifCommercants();
+      telechargerCsv(toutesLesLignes);
+    } finally {
+      setExport(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-ink">Comparatif des commerçants (mois en cours)</h2>
         <button
           type="button"
-          onClick={() => exporterCsv(lignes)}
-          className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white"
+          onClick={handleExport}
+          disabled={exportEnCours}
+          className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          Exporter en CSV
+          {exportEnCours ? "Export..." : "Exporter en CSV"}
         </button>
       </div>
 

@@ -53,8 +53,76 @@ export type ComparatifCommercant = {
   nombreVentes: number;
 };
 
-// CA et nombre de ventes du mois en cours, un commerçant par ligne — pour
-// le tableau comparatif des rapports plateforme.
+export type ComparatifCommercantsPageResult = {
+  lignes: ComparatifCommercant[];
+  total: number;
+};
+
+// Équivalent paginé de getComparatifCommercants : la page de commerçants est
+// choisie en base (LIMIT/OFFSET, ordre alphabétique), puis les ventes du
+// mois ne sont chargées que pour CES commerçants (.in), pas pour toute la
+// plateforme.
+export async function getComparatifCommercantsPage(
+  page: number,
+  pageSize: number,
+): Promise<ComparatifCommercantsPageResult> {
+  const supabase = await createClient();
+  const maintenant = new Date();
+  const debut = new Date(Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), 1))
+    .toISOString()
+    .slice(0, 10);
+  const fin = new Date(
+    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth() + 1, 1),
+  )
+    .toISOString()
+    .slice(0, 10);
+
+  const debutPage = (page - 1) * pageSize;
+  const finPage = debutPage + pageSize - 1;
+
+  const {
+    data: commercants,
+    error,
+    count,
+  } = await supabase
+    .from("commercants")
+    .select("id, nom_commerce", { count: "exact" })
+    .order("nom_commerce", { ascending: true })
+    .range(debutPage, finPage);
+
+  if (error) throw new Error(error.message);
+  if (!commercants || commercants.length === 0) return { lignes: [], total: count ?? 0 };
+
+  const idsPage = commercants.map((commercant) => commercant.id);
+  const { data: ventes } = await supabase
+    .from("ventes")
+    .select("commercant_id, montant_total")
+    .in("commercant_id", idsPage)
+    .gte("date_vente", debut)
+    .lt("date_vente", fin);
+
+  const parCommercant = new Map<string, { ca: number; nombreVentes: number }>();
+  for (const vente of ventes ?? []) {
+    const entree = parCommercant.get(vente.commercant_id) ?? { ca: 0, nombreVentes: 0 };
+    entree.ca += vente.montant_total;
+    entree.nombreVentes += 1;
+    parCommercant.set(vente.commercant_id, entree);
+  }
+
+  const lignes = commercants.map((commercant) => ({
+    commercantId: commercant.id,
+    nomCommerce: commercant.nom_commerce,
+    ca: parCommercant.get(commercant.id)?.ca ?? 0,
+    nombreVentes: parCommercant.get(commercant.id)?.nombreVentes ?? 0,
+  }));
+
+  return { lignes, total: count ?? 0 };
+}
+
+// CA et nombre de ventes du mois en cours, un commerçant par ligne, pour
+// TOUTE la plateforme. Le tableau affiché à l'écran utilise désormais
+// getComparatifCommercantsPage (paginée) ; cette version complète ne sert
+// plus qu'à l'export CSV, déclenché à la demande depuis ComparatifTable.
 export async function getComparatifCommercants(): Promise<ComparatifCommercant[]> {
   const supabase = await createClient();
   const maintenant = new Date();

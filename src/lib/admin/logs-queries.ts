@@ -8,18 +8,30 @@ export type LogEnrichi = AdminLog & {
   commercantNom: string | null;
 };
 
-// Journal d'activité admin, le plus récent en premier, avec le nom de
-// l'admin et du commerçant résolus (plutôt que leurs seuls id).
-export async function listAdminLogs(): Promise<LogEnrichi[]> {
-  const supabase = await createClient();
+export type AdminLogsPageResult = {
+  logs: LogEnrichi[];
+  total: number;
+};
 
-  const { data: logs, error } = await supabase
+// Équivalent paginé de listAdminLogs pour /admin/journal : LIMIT/OFFSET
+// (via .range) appliqué en base, tri antichronologique conservé — la requête
+// ne ramène que la page demandée, pas tout le journal.
+export async function listAdminLogsPage(
+  page: number,
+  pageSize: number,
+): Promise<AdminLogsPageResult> {
+  const supabase = await createClient();
+  const debut = (page - 1) * pageSize;
+  const fin = debut + pageSize - 1;
+
+  const { data: logs, error, count } = await supabase
     .from("admin_logs")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(debut, fin);
 
   if (error) throw new Error(error.message);
-  return enrichirLogs(logs ?? []);
+  return { logs: await enrichirLogs(logs ?? []), total: count ?? 0 };
 }
 
 // Les `limite` actions les plus récentes, pour l'aperçu de la vue

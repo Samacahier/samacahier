@@ -1,47 +1,73 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { CommercantOverview } from "@/lib/dashboard/admin-queries";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type {
+  CommercantOverview,
+  CommercantsFiltre,
+  CommercantsTri,
+} from "@/lib/dashboard/admin-queries";
 import CommercantAvatar from "@/components/admin/CommercantAvatar";
 
 type CommercantsTableProps = {
   overviews: CommercantOverview[];
+  recherche: string;
+  filtre: CommercantsFiltre;
+  tri: CommercantsTri;
 };
-
-type Filtre = "tous" | "actifs" | "desactives";
-type Tri = "recent" | "ca" | "activite";
 
 const CHAMP = "rounded-xl border border-line bg-card px-3 py-2 text-ink";
 
-export default function CommercantsTable({ overviews }: CommercantsTableProps) {
+// Recherche/filtre/tri sont pilotés par l'URL (?q=&filtre=&tri=) : le tri et
+// le filtrage sont appliqués côté base de données (voir
+// listCommercantsOverviewPage), donc `overviews` n'est déjà que la page
+// courante du résultat filtré — pas de re-filtrage en mémoire ici.
+export default function CommercantsTable({
+  overviews,
+  recherche,
+  filtre,
+  tri,
+}: CommercantsTableProps) {
   const router = useRouter();
-  const [recherche, setRecherche] = useState("");
-  const [filtre, setFiltre] = useState<Filtre>("tous");
-  const [tri, setTri] = useState<Tri>("recent");
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [rechercheLocale, setRechercheLocale] = useState(recherche);
 
-  const lignes = useMemo(() => {
-    const requete = recherche.trim().toLowerCase();
+  // Resynchronise l'entrée locale si la recherche change depuis l'URL (ex.
+  // navigation arrière) — ajusté pendant le rendu plutôt que dans un effet,
+  // conformément au pattern React pour dériver un state d'une prop.
+  const [rechercheUrlAffichee, setRechercheUrlAffichee] = useState(recherche);
+  if (rechercheUrlAffichee !== recherche) {
+    setRechercheUrlAffichee(recherche);
+    setRechercheLocale(recherche);
+  }
 
-    const filtrees = overviews.filter(({ commercant }) => {
-      if (filtre === "actifs" && !commercant.actif) return false;
-      if (filtre === "desactives" && commercant.actif) return false;
-      if (!requete) return true;
-      return (
-        commercant.nom_commerce.toLowerCase().includes(requete) ||
-        (commercant.activite ?? "").toLowerCase().includes(requete)
-      );
-    });
+  function naviguer(changements: { q?: string; filtre?: CommercantsFiltre; tri?: CommercantsTri }) {
+    const params = new URLSearchParams(searchParams.toString());
+    const q = changements.q ?? recherche;
+    const f = changements.filtre ?? filtre;
+    const t = changements.tri ?? tri;
 
-    return [...filtrees].sort((a, b) => {
-      if (tri === "ca") return b.chiffreAffaires - a.chiffreAffaires;
-      if (tri === "activite") {
-        return (b.derniereActivite ?? "").localeCompare(a.derniereActivite ?? "");
-      }
-      return b.commercant.created_at.localeCompare(a.commercant.created_at);
-    });
-  }, [overviews, recherche, filtre, tri]);
+    if (q) params.set("q", q);
+    else params.delete("q");
+    if (f !== "tous") params.set("filtre", f);
+    else params.delete("filtre");
+    if (t !== "recent") params.set("tri", t);
+    else params.delete("tri");
+    params.delete("page");
+
+    const qs = params.toString();
+    router.push(`${pathname}${qs ? `?${qs}` : ""}`);
+  }
+
+  // Débounce la recherche texte pour éviter une requête serveur par frappe.
+  useEffect(() => {
+    if (rechercheLocale === recherche) return;
+    const handle = setTimeout(() => naviguer({ q: rechercheLocale }), 300);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rechercheLocale]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -49,33 +75,37 @@ export default function CommercantsTable({ overviews }: CommercantsTableProps) {
         <input
           type="text"
           placeholder="Rechercher par nom ou activité..."
-          value={recherche}
-          onChange={(event) => setRecherche(event.target.value)}
+          value={rechercheLocale}
+          onChange={(event) => setRechercheLocale(event.target.value)}
           className={`min-w-[220px] flex-1 ${CHAMP}`}
         />
         <select
           value={filtre}
-          onChange={(event) => setFiltre(event.target.value as Filtre)}
+          onChange={(event) => naviguer({ filtre: event.target.value as CommercantsFiltre })}
           className={CHAMP}
         >
           <option value="tous">Tous les statuts</option>
           <option value="actifs">Actifs</option>
           <option value="desactives">Désactivés</option>
         </select>
-        <select value={tri} onChange={(event) => setTri(event.target.value as Tri)} className={CHAMP}>
+        <select
+          value={tri}
+          onChange={(event) => naviguer({ tri: event.target.value as CommercantsTri })}
+          className={CHAMP}
+        >
           <option value="recent">Plus récents</option>
           <option value="ca">Chiffre d&apos;affaires</option>
           <option value="activite">Activité récente</option>
         </select>
       </div>
 
-      {lignes.length === 0 ? (
+      {overviews.length === 0 ? (
         <p className="text-sm text-ink-muted">Aucun commerçant ne correspond.</p>
       ) : (
         <>
           {/* Mobile/tablette (<1024px) : cartes empilées */}
           <div className="flex flex-col gap-3 lg:hidden">
-            {lignes.map(({ commercant, chiffreAffaires, soldeCaisse }) => (
+            {overviews.map(({ commercant, chiffreAffaires, soldeCaisse }) => (
               <Link
                 key={commercant.id}
                 href={`/admin/commercants/${commercant.id}`}
@@ -122,7 +152,7 @@ export default function CommercantsTable({ overviews }: CommercantsTableProps) {
                 </tr>
               </thead>
               <tbody>
-                {lignes.map(({ commercant, chiffreAffaires, soldeCaisse }) => (
+                {overviews.map(({ commercant, chiffreAffaires, soldeCaisse }) => (
                   <tr
                     key={commercant.id}
                     onClick={() => router.push(`/admin/commercants/${commercant.id}`)}

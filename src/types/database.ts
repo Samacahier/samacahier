@@ -11,6 +11,25 @@ type TypeMouvement = "entree" | "sortie";
 type TypePoche = "caisse" | "poche";
 type StatutCreance = "en_cours" | "soldee" | "en_retard";
 
+type CommercantRow = {
+  id: string;
+  nom_commerce: string;
+  adresse: string | null;
+  telephone: string | null;
+  created_at: string;
+  logo_url: string | null;
+  activite: string | null;
+  ninea: string | null;
+  rccm: string | null;
+  telephone_pro: string | null;
+  email_pro: string | null;
+  ville_region: string | null;
+  devise: string;
+  solde_initial_caisse: number;
+  solde_initial_poche: number;
+  actif: boolean;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -43,24 +62,7 @@ export type Database = {
         Relationships: [];
       };
       commercants: {
-        Row: {
-          id: string;
-          nom_commerce: string;
-          adresse: string | null;
-          telephone: string | null;
-          created_at: string;
-          logo_url: string | null;
-          activite: string | null;
-          ninea: string | null;
-          rccm: string | null;
-          telephone_pro: string | null;
-          email_pro: string | null;
-          ville_region: string | null;
-          devise: string;
-          solde_initial_caisse: number;
-          solde_initial_poche: number;
-          actif: boolean;
-        };
+        Row: CommercantRow;
         Insert: {
           id: string;
           nom_commerce: string;
@@ -299,7 +301,19 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: { [_ in never]: never };
+    Views: {
+      // Calcule chiffre_affaires/solde_caisse/derniere_activite par
+      // commerçant en SQL (voir migration 20260906030611), pour permettre un
+      // tri + pagination entièrement côté base de données sur /admin/dashboard.
+      admin_commercants_overview: {
+        Row: CommercantRow & {
+          chiffre_affaires: number | null;
+          solde_caisse: number | null;
+          derniere_activite: string | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: { [_ in never]: never };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
