@@ -1,5 +1,5 @@
 import { Store, CircleDollarSign, Sparkles, TriangleAlert } from "lucide-react";
-import { listCommercantsOverview, getAdminKpis } from "@/lib/dashboard/admin-queries";
+import { getAdminKpis, listTopCommercants } from "@/lib/dashboard/admin-queries";
 import KpiCard from "@/components/admin/KpiCard";
 import InscriptionsChart from "@/components/admin/InscriptionsChart";
 import TopCommercantsPanel from "@/components/admin/TopCommercantsPanel";
@@ -7,8 +7,7 @@ import DernieresActionsPanel from "@/components/admin/DernieresActionsPanel";
 import AutoRefresh from "@/components/admin/AutoRefresh";
 
 export default async function AdminVueEnsemblePage() {
-  const overviews = await listCommercantsOverview();
-  const kpis = await getAdminKpis(overviews);
+  const [kpis, overviews] = await Promise.all([getAdminKpis(), listTopCommercants(5)]);
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
@@ -18,7 +17,7 @@ export default async function AdminVueEnsemblePage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
           label="Commerçants actifs"
-          value={String(kpis.commercantsActifs)}
+          value={`${kpis.commercantsActifs.toLocaleString("fr-FR")} / ${kpis.totalCommercants.toLocaleString("fr-FR")}`}
           Icone={Store}
           fondIcone="bg-[#eae3d8]"
           couleurIcone="text-ink"

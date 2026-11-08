@@ -17,24 +17,48 @@ export async function demanderReinitialisationMotDePasse(email: string) {
   const { data, error } = await admin.auth.admin.generateLink({
     type: "recovery",
     email,
-    options: { redirectTo: `${origine}/reset-password` },
   });
 
-  if (!error && data.properties?.action_link) {
-    const html = rendreEmailHtml({
-      eyebrow: "Mot de passe oublié",
-      titre: "Réinitialisez votre mot de passe",
-      intro:
-        "Vous avez demandé à réinitialiser le mot de passe de votre compte Sama Cahier. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe.",
-      bouton: { label: "Créer un nouveau mot de passe →", href: data.properties.action_link },
-      pied: "Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.",
-    });
+  if (error) {
+    // Adresse non inscrite : cas attendu, pas une panne.
+    if (error.status !== 404) {
+      console.error("[reset-password] generateLink a échoué :", error.message);
+    }
+    return { error: null };
+  }
 
-    await envoyerEmail({
-      to: [email],
-      subject: "Réinitialisation de votre mot de passe Sama Cahier",
-      html,
-    });
+  const tokenHash = data.properties?.hashed_token;
+  if (!tokenHash) {
+    console.error("[reset-password] generateLink n'a renvoyé aucun hashed_token.");
+    return { error: null };
+  }
+
+  // Lien vers notre route /auth/confirm (vérification côté serveur), et non
+  // l'action_link de Supabase, incompatible avec le client PKCE : voir
+  // src/app/auth/confirm/route.ts.
+  const lien = `${origine}/auth/confirm?${new URLSearchParams({
+    token_hash: tokenHash,
+    type: "recovery",
+    next: "/reset-password",
+  })}`;
+
+  const html = rendreEmailHtml({
+    eyebrow: "Mot de passe oublié",
+    titre: "Réinitialisez votre mot de passe",
+    intro:
+      "Vous avez demandé à réinitialiser le mot de passe de votre compte Sama Cahier. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe.",
+    bouton: { label: "Créer un nouveau mot de passe →", href: lien },
+    pied: "Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.",
+  });
+
+  const envoi = await envoyerEmail({
+    to: [email],
+    subject: "Réinitialisation de votre mot de passe Sama Cahier",
+    html,
+  });
+
+  if (envoi.error) {
+    console.error("[reset-password] envoi Resend échoué :", envoi.error);
   }
 
   return { error: null };

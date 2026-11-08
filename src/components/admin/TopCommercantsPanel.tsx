@@ -12,8 +12,9 @@ function formaterDateInscription(dateIso: string): string {
   return new Date(dateIso).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
 }
 
-// Classement des commerçants par CA du mois (déjà calculé dans overviews),
-// aperçu pour la vue d'ensemble — liste complète sur /admin/commercants.
+// Classement des commerçants par CA du mois — `overviews` arrive déjà trié
+// et limité côté base (listTopCommercants) ; le tri ci-dessous reste une
+// simple sécurité. Liste complète sur /admin/commercants.
 export default function TopCommercantsPanel({ overviews }: TopCommercantsPanelProps) {
   const classement = [...overviews]
     .sort((a, b) => b.chiffreAffaires - a.chiffreAffaires)

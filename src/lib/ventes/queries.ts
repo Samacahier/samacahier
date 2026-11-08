@@ -115,26 +115,29 @@ async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente) 
 
 // Applique un delta de quantité sur un produit du catalogue. Le stock peut
 // devenir négatif (aucun blocage) : l'alerte de seuil existante suffit.
+//
+// Atomique : la fonction SQL fait `quantite = quantite + delta` en une seule
+// instruction. L'ancienne version (lire la quantité, puis écrire lue + delta)
+// perdait une déduction quand deux ventes du même produit arrivaient en même
+// temps — cause des écarts de stock signalés "parfois".
 async function ajusterQuantiteStock(
   supabase: SupabaseServerClient,
   produitId: string,
   delta: number,
 ) {
-  const { data: produit } = await supabase
-    .from("stocks")
-    .select("quantite")
-    .eq("id", produitId)
-    .single();
+  if (delta === 0) return;
 
-  if (!produit) return;
+  const { error } = await supabase.rpc("ajuster_stock_quantite", {
+    p_produit_id: produitId,
+    p_delta: delta,
+  });
 
-  await supabase
-    .from("stocks")
-    .update({
-      quantite: produit.quantite + delta,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", produitId);
+  if (error) {
+    console.error(
+      `[stocks] ajustement de ${delta} sur le produit ${produitId} échoué :`,
+      error.message,
+    );
+  }
 }
 
 // Une vente liée à un produit du catalogue déduit sa quantité du stock. Pas

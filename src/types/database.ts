@@ -314,10 +314,30 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: { [_ in never]: never };
+    // Voir migration 20261108120000_admin_kpis_et_ajuster_stock.
+    Functions: {
+      admin_kpis: {
+        Args: Record<PropertyKey, never>;
+        Returns: AdminKpisSql;
+      };
+      ajuster_stock_quantite: {
+        Args: { p_produit_id: string; p_delta: number };
+        Returns: undefined;
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
+};
+
+// Résultat JSON de la fonction SQL public.admin_kpis().
+export type AdminKpisSql = {
+  total_commercants: number;
+  commercants_actifs: number;
+  ca_cumule_mois: number;
+  nouveaux_inscrits_7j: number;
+  inactifs_14j: number;
+  inscriptions_par_jour: { date: string; count: number }[] | null;
 };
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];

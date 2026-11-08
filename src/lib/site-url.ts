@@ -1,9 +1,14 @@
 import { headers } from "next/headers";
 
-// Origine du site à partir de l'en-tête Host de la requête en cours —
-// fonctionne aussi bien en local qu'en production sans variable d'env
-// dédiée. Repli sur le domaine de production (metadataBase) si absent.
+// Origine du site utilisée dans les liens envoyés par e-mail.
+// NEXT_PUBLIC_SITE_URL est prioritaire : l'en-tête Host vient du client, et
+// s'y fier pour un lien de réinitialisation permettrait d'envoyer à une
+// victime un lien pointant vers un domaine tiers (le jeton y fuiterait).
+// Repli sur l'en-tête Host (pratique en local), puis sur le domaine de prod.
 export async function obtenirOrigineSite(): Promise<string> {
+  const configuree = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+  if (configuree) return configuree;
+
   const liste = await headers();
   const host = liste.get("host");
   if (!host) return "https://sama-cahier.com";
