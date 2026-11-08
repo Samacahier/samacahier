@@ -153,6 +153,32 @@ const codes = (
 ).rows.map((r) => `${r.commercant_id.slice(-1)}:${r.code_produit}`);
 verifier("codes produit par commerçant", codes, ["1:PRD001", "1:PRD002", "2:PRD001", "2:PRD002"]);
 
+// --- Après PRD999 : PRD1000 (et non PRD100 tronqué → doublon) ---------
+// Reproduit le cas réel de "House of Rahma Vaisselles" (PRD100 + PRD999).
+await db.query(`insert into public.stocks (commercant_id, nom_article, code_produit) values ('${C2}', 'A', 'PRD100'), ('${C2}', 'B', 'PRD999')`);
+await db.exec(`set role authenticated; select set_config('test.uid', '${C2}', false);`);
+let nouveauCode;
+try {
+  nouveauCode = (
+    await db.query(`insert into public.stocks (commercant_id, nom_article) values ('${C2}', 'Plat') returning code_produit`)
+  ).rows[0].code_produit;
+} catch (e) {
+  nouveauCode = `ERREUR: ${e.message}`;
+}
+verifier("code après PRD999", nouveauCode, "PRD1000");
+const suivant = (
+  await db.query(`insert into public.stocks (commercant_id, nom_article) values ('${C2}', 'Bol') returning code_produit`)
+).rows[0].code_produit;
+verifier("code suivant", suivant, "PRD1001");
+await db.exec(`reset role;`);
+
+// --- Policies réécrites avec (select auth.uid()) ------------------------
+const nonOptimisees = (
+  await db.query(`select count(*)::int n from pg_policies where schemaname = 'public'
+    and (coalesce(qual,'') ~ '[^t] ?auth\\.uid\\(\\)' and coalesce(qual,'') !~* 'select auth\\.uid')`)
+).rows[0].n;
+verifier("policies RLS optimisées", nonOptimisees, 0);
+
 // --- Mode maintenance ---------------------------------------------------
 await db.exec(`set role anon;`);
 const lectureAnon = (await db.query(`select maintenance_active from public.parametres_plateforme`)).rows;
