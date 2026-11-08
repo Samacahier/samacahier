@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { lireTout } from "@/lib/utils/lire-tout";
 
 export type DashboardStats = {
   chiffreAffaires: number;
@@ -41,31 +42,51 @@ export async function getDashboardStats(commercantId: string): Promise<Dashboard
   const { debut, fin } = bornesMoisEnCours();
 
   const [ventes, depenses, caisse, creances, stocks, commercant] = await Promise.all([
-    supabase
-      .from("ventes")
-      .select("montant_total, montant_encaisse")
-      .eq("commercant_id", commercantId)
-      .gte("date_vente", debut)
-      .lt("date_vente", fin),
-    supabase
-      .from("depenses")
-      .select("montant")
-      .eq("commercant_id", commercantId)
-      .gte("date_depense", debut)
-      .lt("date_depense", fin),
-    supabase
-      .from("caisse")
-      .select("type_mouvement, montant, type_poche")
-      .eq("commercant_id", commercantId),
-    supabase
-      .from("creances")
-      .select("montant, montant_rembourse")
-      .eq("commercant_id", commercantId)
-      .neq("statut", "soldee"),
-    supabase
-      .from("stocks")
-      .select("id, nom_article, quantite, seuil_alerte")
-      .eq("commercant_id", commercantId),
+    lireTout((d, f) =>
+      supabase
+        .from("ventes")
+        .select("montant_total, montant_encaisse")
+        .eq("commercant_id", commercantId)
+        .gte("date_vente", debut)
+        .lt("date_vente", fin)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("depenses")
+        .select("montant")
+        .eq("commercant_id", commercantId)
+        .gte("date_depense", debut)
+        .lt("date_depense", fin)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("caisse")
+        .select("type_mouvement, montant, type_poche")
+        .eq("commercant_id", commercantId)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("creances")
+        .select("montant, montant_rembourse")
+        .eq("commercant_id", commercantId)
+        .neq("statut", "soldee")
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("stocks")
+        .select("id, nom_article, quantite, seuil_alerte")
+        .eq("commercant_id", commercantId)
+        .order("id")
+        .range(d, f),
+    ),
     supabase
       .from("commercants")
       .select("solde_initial_caisse, solde_initial_poche")

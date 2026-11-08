@@ -300,6 +300,25 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["admin_logs"]["Insert"]>;
         Relationships: [];
       };
+      // Ligne unique (id = 1) — voir migration 20261108130000_mode_maintenance.
+      parametres_plateforme: {
+        Row: {
+          id: number;
+          maintenance_active: boolean;
+          maintenance_message: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: number;
+          maintenance_active?: boolean;
+          maintenance_message?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["parametres_plateforme"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       // Calcule chiffre_affaires/solde_caisse/derniere_activite par
@@ -323,6 +342,15 @@ export type Database = {
       ajuster_stock_quantite: {
         Args: { p_produit_id: string; p_delta: number };
         Returns: undefined;
+      };
+      // Voir migration 20261108140000_admin_rapports_agreges.
+      admin_ca_par_mois: {
+        Args: { p_nombre_mois?: number };
+        Returns: { mois: string; ca: number }[];
+      };
+      admin_ca_par_commercant: {
+        Args: { p_debut: string; p_fin: string; p_commercant_ids?: string[] };
+        Returns: { commercant_id: string; ca: number; nombre_ventes: number }[];
       };
     };
     Enums: { [_ in never]: never };

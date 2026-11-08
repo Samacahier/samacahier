@@ -103,7 +103,7 @@ await db.exec(`select set_config('test.uid', '${C1}', false);`);
 try {
   await db.query(`select public.admin_kpis()`);
   verifier("admin_kpis refusé au commerçant", "autorisé", "refusé");
-} catch (e) {
+} catch {
   verifier("admin_kpis refusé au commerçant", "refusé", "refusé");
 }
 
@@ -135,6 +135,66 @@ try {
 } catch {
   verifier("anon bloqué", "refusé", "refusé");
 }
+
+await db.exec(`reset role;`);
+
+// --- Codes produit : chaque commerçant a sa propre numérotation ---------
+// (erreur signalée en prod : duplicate key "stocks_code_produit_key")
+await db.exec(`set role authenticated; select set_config('test.uid', '${C2}', false);`);
+await db.query(`insert into public.stocks (commercant_id, nom_article) values ('${C2}', 'Assiette')`);
+await db.query(`insert into public.stocks (commercant_id, nom_article) values ('${C2}', 'Verre')`);
+await db.exec(`select set_config('test.uid', '${C1}', false);`);
+await db.query(`insert into public.stocks (commercant_id, nom_article) values ('${C1}', 'Sucre')`);
+await db.exec(`reset role;`);
+const codes = (
+  await db.query(
+    `select commercant_id, code_produit from public.stocks where commercant_id in ('${C1}', '${C2}') order by commercant_id, code_produit`,
+  )
+).rows.map((r) => `${r.commercant_id.slice(-1)}:${r.code_produit}`);
+verifier("codes produit par commerçant", codes, ["1:PRD001", "1:PRD002", "2:PRD001", "2:PRD002"]);
+
+// --- Mode maintenance ---------------------------------------------------
+await db.exec(`set role anon;`);
+const lectureAnon = (await db.query(`select maintenance_active from public.parametres_plateforme`)).rows;
+verifier("maintenance lisible par anon", lectureAnon, [{ maintenance_active: false }]);
+
+await db.exec(`set role authenticated; select set_config('test.uid', '${C1}', false);`);
+await db.query(`update public.parametres_plateforme set maintenance_active = true where id = 1`);
+await db.exec(`reset role;`);
+let etat = (await db.query(`select maintenance_active from public.parametres_plateforme`)).rows[0];
+verifier("commerçant ne peut pas activer la maintenance", etat.maintenance_active, false);
+
+await db.exec(`set role authenticated; select set_config('test.uid', '${ADMIN}', false);`);
+await db.query(`update public.parametres_plateforme set maintenance_active = true, maintenance_message = 'MAJ' where id = 1`);
+await db.exec(`reset role;`);
+etat = (await db.query(`select maintenance_active from public.parametres_plateforme`)).rows[0];
+verifier("admin active la maintenance", etat.maintenance_active, true);
+
+// --- Rapports admin agrégés ---------------------------------------------
+await db.exec(`set role authenticated; select set_config('test.uid', '${ADMIN}', false);`);
+const parMois = (await db.query(`select mois, ca from public.admin_ca_par_mois(6)`)).rows;
+verifier("admin_ca_par_mois : 6 mois", parMois.length, 6);
+verifier("admin_ca_par_mois : CA du mois en cours", Number(parMois[5].ca), 1300000);
+const parCommercant = (
+  await db.query(`select count(*)::int n, sum(ca)::int ca, sum(nombre_ventes)::int nb
+    from public.admin_ca_par_commercant(date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month')::date)`)
+).rows[0];
+verifier("admin_ca_par_commercant : tous", parCommercant, { n: 1100, ca: 1300000, nb: 1500 });
+const unSeul = (
+  await db.query(
+    `select ca, nombre_ventes from public.admin_ca_par_commercant(date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month')::date, array['10000000-0000-0000-0000-000000000500']::uuid[])`,
+  )
+).rows.map((r) => [Number(r.ca), Number(r.nombre_ventes)]);
+verifier("admin_ca_par_commercant : filtre", unSeul, [[1500, 2]]);
+
+await db.exec(`select set_config('test.uid', '${C1}', false);`);
+try {
+  await db.query(`select * from public.admin_ca_par_mois(6)`);
+  verifier("rapports admin refusés au commerçant", "autorisé", "refusé");
+} catch {
+  verifier("rapports admin refusés au commerçant", "refusé", "refusé");
+}
+await db.exec(`reset role;`);
 
 console.log(echecs === 0 ? "\nTOUS LES TESTS PASSENT" : `\n${echecs} TEST(S) EN ÉCHEC`);
 process.exit(echecs === 0 ? 0 : 1);

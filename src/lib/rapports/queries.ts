@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { lireTout } from "@/lib/utils/lire-tout";
 
 export type RapportPeriode = {
   totalVentes: number;
@@ -27,31 +28,47 @@ export async function getRapportPeriode(
   const finLendemain = lendemain(fin);
 
   const [ventes, depenses, caisse, creances] = await Promise.all([
-    supabase
-      .from("ventes")
-      .select("montant_total")
-      .eq("commercant_id", commercantId)
-      .gte("date_vente", debut)
-      .lte("date_vente", fin),
-    supabase
-      .from("depenses")
-      .select("montant")
-      .eq("commercant_id", commercantId)
-      .gte("date_depense", debut)
-      .lte("date_depense", fin),
-    supabase
-      .from("caisse")
-      .select("type_mouvement, montant")
-      .eq("commercant_id", commercantId)
-      .gte("date_mouvement", debut)
-      .lt("date_mouvement", finLendemain),
-    supabase
-      .from("creances")
-      .select("montant, montant_rembourse")
-      .eq("commercant_id", commercantId)
-      .neq("statut", "soldee")
-      .gte("created_at", debut)
-      .lt("created_at", finLendemain),
+    lireTout((d, f) =>
+      supabase
+        .from("ventes")
+        .select("montant_total")
+        .eq("commercant_id", commercantId)
+        .gte("date_vente", debut)
+        .lte("date_vente", fin)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("depenses")
+        .select("montant")
+        .eq("commercant_id", commercantId)
+        .gte("date_depense", debut)
+        .lte("date_depense", fin)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("caisse")
+        .select("type_mouvement, montant")
+        .eq("commercant_id", commercantId)
+        .gte("date_mouvement", debut)
+        .lt("date_mouvement", finLendemain)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("creances")
+        .select("montant, montant_rembourse")
+        .eq("commercant_id", commercantId)
+        .neq("statut", "soldee")
+        .gte("created_at", debut)
+        .lt("created_at", finLendemain)
+        .order("id")
+        .range(d, f),
+    ),
   ]);
 
   const totalVentes = (ventes.data ?? []).reduce(
@@ -89,12 +106,16 @@ export async function getVentesParStatut(
   fin: string,
 ): Promise<VentesParStatut> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("ventes")
-    .select("statut, montant_total")
-    .eq("commercant_id", commercantId)
-    .gte("date_vente", debut)
-    .lte("date_vente", fin);
+  const { data } = await lireTout((d, f) =>
+    supabase
+      .from("ventes")
+      .select("statut, montant_total")
+      .eq("commercant_id", commercantId)
+      .gte("date_vente", debut)
+      .lte("date_vente", fin)
+      .order("id")
+      .range(d, f),
+  );
 
   const resultat: VentesParStatut = {
     paye: { montant: 0, nombre: 0 },
@@ -119,22 +140,32 @@ export async function getMargeBrute(
   fin: string,
 ): Promise<number> {
   const supabase = await createClient();
-  const { data: ventes } = await supabase
-    .from("ventes")
-    .select("produit_id, quantite")
-    .eq("commercant_id", commercantId)
-    .eq("statut", "paye")
-    .not("produit_id", "is", null)
-    .gte("date_vente", debut)
-    .lte("date_vente", fin);
+  const { data: ventes } = await lireTout((d, f) =>
+    supabase
+      .from("ventes")
+      .select("produit_id, quantite")
+      .eq("commercant_id", commercantId)
+      .eq("statut", "paye")
+      .not("produit_id", "is", null)
+      .gte("date_vente", debut)
+      .lte("date_vente", fin)
+      .order("id")
+      .range(d, f),
+  );
 
-  if (!ventes || ventes.length === 0) return 0;
+  if (ventes.length === 0) return 0;
 
-  const produitIds = [...new Set(ventes.map((vente) => vente.produit_id as string))];
-  const { data: produits } = await supabase
-    .from("stocks")
-    .select("id, prix_achat, prix_vente")
-    .in("id", produitIds);
+  // Tout le catalogue du commerçant plutôt qu'un filtre .in("id", [...]) :
+  // avec des centaines de produits, la liste d'identifiants dépassait la
+  // longueur maximale d'URL de l'API et la marge tombait silencieusement à 0.
+  const { data: produits } = await lireTout((d, f) =>
+    supabase
+      .from("stocks")
+      .select("id, prix_achat, prix_vente")
+      .eq("commercant_id", commercantId)
+      .order("id")
+      .range(d, f),
+  );
 
   const margeParProduit = new Map(
     (produits ?? []).map((produit) => [
@@ -163,13 +194,31 @@ export async function getApercuGlobal(commercantId: string): Promise<ApercuGloba
   const supabase = await createClient();
 
   const [ventes, depenses, creances] = await Promise.all([
-    supabase.from("ventes").select("montant_total").eq("commercant_id", commercantId),
-    supabase.from("depenses").select("montant").eq("commercant_id", commercantId),
-    supabase
-      .from("creances")
-      .select("montant, montant_rembourse")
-      .eq("commercant_id", commercantId)
-      .neq("statut", "soldee"),
+    lireTout((d, f) =>
+      supabase
+        .from("ventes")
+        .select("montant_total")
+        .eq("commercant_id", commercantId)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("depenses")
+        .select("montant")
+        .eq("commercant_id", commercantId)
+        .order("id")
+        .range(d, f),
+    ),
+    lireTout((d, f) =>
+      supabase
+        .from("creances")
+        .select("montant, montant_rembourse")
+        .eq("commercant_id", commercantId)
+        .neq("statut", "soldee")
+        .order("id")
+        .range(d, f),
+    ),
   ]);
 
   const chiffreAffaires = (ventes.data ?? []).reduce(

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Vente } from "@/types/database";
+import { messageErreur } from "@/lib/utils/erreurs";
 
 type VenteInsert = Database["public"]["Tables"]["ventes"]["Insert"];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -13,16 +14,30 @@ export type VenteFormInput = Omit<
   "id" | "commercant_id" | "created_at"
 >;
 
-export async function listVentes(commercantId: string): Promise<Vente[]> {
+export type VentesPage = { ventes: Vente[]; total: number };
+
+// Liste paginée côté base (page de `taille` lignes, la plus récente d'abord).
+// Remplace le chargement de toute la liste : plus rapide sur mobile, et plus
+// de troncature silencieuse à 1000 lignes.
+export async function listVentesPage(
+  commercantId: string,
+  page: number,
+  taille: number,
+): Promise<VentesPage> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const debut = (page - 1) * taille;
+
+  const { data, error, count } = await supabase
     .from("ventes")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("commercant_id", commercantId)
-    .order("date_vente", { ascending: false });
+    .order("date_vente", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("id")
+    .range(debut, debut + taille - 1);
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return { ventes: data ?? [], total: count ?? 0 };
 }
 
 export async function getVenteById(id: string): Promise<Vente | null> {
@@ -175,7 +190,7 @@ export async function createVente(
     .select()
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "ventes") };
 
   await syncCreanceForVente(supabase, vente);
   await syncCaisseForVente(supabase, vente);
@@ -206,7 +221,7 @@ export async function updateVente(
     .select()
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "ventes") };
 
   await syncCreanceForVente(supabase, vente);
   await syncCaisseForVente(supabase, vente);
@@ -228,7 +243,7 @@ export async function deleteVente(id: string) {
     .select("produit_id, quantite")
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "ventes") };
 
   await syncStockForVente(supabase, vente, null);
 

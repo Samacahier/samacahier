@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { lireTout } from "@/lib/utils/lire-tout";
 import type { Database, Fournisseur } from "@/types/database";
+import { messageErreur } from "@/lib/utils/erreurs";
 
 type FournisseurInsert = Database["public"]["Tables"]["fournisseurs"]["Insert"];
 
@@ -13,14 +15,19 @@ export type FournisseurFormInput = Omit<
 
 export async function listFournisseurs(commercantId: string): Promise<Fournisseur[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("fournisseurs")
-    .select("*")
-    .eq("commercant_id", commercantId)
-    .order("nom", { ascending: true });
+  // lireTout : au-delà de 1000 lignes, l'API tronquait la liste en silence.
+  const { data, error } = await lireTout((d, f) =>
+    supabase
+      .from("fournisseurs")
+      .select("*")
+      .eq("commercant_id", commercantId)
+      .order("nom", { ascending: true })
+      .order("id")
+      .range(d, f),
+  );
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return data;
 }
 
 export async function createFournisseur(input: FournisseurFormInput) {
@@ -35,7 +42,7 @@ export async function createFournisseur(input: FournisseurFormInput) {
     .from("fournisseurs")
     .insert({ ...input, commercant_id: user.id });
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "fournisseurs") };
 
   revalidatePath("/fournisseurs");
   return { error: null };
@@ -48,7 +55,7 @@ export async function updateFournisseur(
   const supabase = await createClient();
   const { error } = await supabase.from("fournisseurs").update(input).eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "fournisseurs") };
 
   revalidatePath("/fournisseurs");
   return { error: null };
@@ -58,7 +65,7 @@ export async function deleteFournisseur(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("fournisseurs").delete().eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "fournisseurs") };
 
   revalidatePath("/fournisseurs");
   return { error: null };

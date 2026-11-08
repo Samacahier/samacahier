@@ -5,14 +5,22 @@ import InscriptionsChart from "@/components/admin/InscriptionsChart";
 import TopCommercantsPanel from "@/components/admin/TopCommercantsPanel";
 import DernieresActionsPanel from "@/components/admin/DernieresActionsPanel";
 import AutoRefresh from "@/components/admin/AutoRefresh";
+import MaintenancePanel from "@/components/admin/MaintenancePanel";
+import { getEtatMaintenance } from "@/lib/admin/maintenance";
 
 export default async function AdminVueEnsemblePage() {
-  const [kpis, overviews] = await Promise.all([getAdminKpis(), listTopCommercants(5)]);
+  const [kpis, overviews, maintenance] = await Promise.all([
+    getAdminKpis(),
+    listTopCommercants(5),
+    getEtatMaintenance(),
+  ]);
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8 lg:max-w-[1440px] lg:px-14 lg:py-12">
       <AutoRefresh />
       <h1 className="text-2xl font-semibold text-ink">Vue d&apos;ensemble</h1>
+
+      <MaintenancePanel etat={maintenance} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
