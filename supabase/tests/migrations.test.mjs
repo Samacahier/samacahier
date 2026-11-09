@@ -179,6 +179,37 @@ const nonOptimisees = (
 ).rows[0].n;
 verifier("policies RLS optimisées", nonOptimisees, 0);
 
+// --- Escalade de privilèges (audit 2026-11-08) ---------------------------
+// 1) Inscription avec { role: 'admin' } dans les métadonnées → commerçant.
+const PIRATE = "20000000-0000-0000-0000-000000000001";
+await db.query(
+  `insert into auth.users (id, email, raw_user_meta_data) values ($1, 'pirate@test', '{"role":"admin","nom_commerce":"Pirate"}'::jsonb)`,
+  [PIRATE],
+);
+const rolePirate = (await db.query(`select role from public.profiles where id = $1`, [PIRATE])).rows[0].role;
+verifier("inscription role=admin → commercant", rolePirate, "commercant");
+const commercePirate = (await db.query(`select count(*)::int n from public.commercants where id = $1`, [PIRATE])).rows[0].n;
+verifier("inscription crée bien la ligne commercants", commercePirate, 1);
+
+// 2) Un commerçant ne peut pas se promouvoir admin.
+const tenter = async (sql, params = []) => {
+  try { await db.query(sql, params); return "autorisé"; } catch { return "refusé"; }
+};
+await db.exec(`set role authenticated; select set_config('test.uid', '${C1}', false);`);
+verifier("commerçant → role admin sur son profil", await tenter(`update public.profiles set role = 'admin' where id = '${C1}'`), "refusé");
+verifier("commerçant modifie son nom de profil", await tenter(`update public.profiles set nom = 'Awa' where id = '${C1}'`), "autorisé");
+verifier("is_admin() reste faux", (await db.query(`select public.is_admin() a`)).rows[0].a, false);
+
+// 3) Un commerçant ne peut pas changer son propre statut actif.
+verifier("commerçant → actif sur sa fiche", await tenter(`update public.commercants set actif = not actif where id = '${C1}'`), "refusé");
+verifier("commerçant modifie le nom de son commerce", await tenter(`update public.commercants set nom_commerce = 'Boutique Awa' where id = '${C1}'`), "autorisé");
+
+// L'admin garde la main sur les deux.
+await db.exec(`select set_config('test.uid', '${ADMIN}', false);`);
+verifier("admin désactive un commerçant", await tenter(`update public.commercants set actif = false where id = '${C1}'`), "autorisé");
+verifier("admin réactive un commerçant", await tenter(`update public.commercants set actif = true where id = '${C1}'`), "autorisé");
+await db.exec(`reset role;`);
+
 // --- Mode maintenance ---------------------------------------------------
 await db.exec(`set role anon;`);
 const lectureAnon = (await db.query(`select maintenance_active from public.parametres_plateforme`)).rows;
