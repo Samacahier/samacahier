@@ -11,7 +11,7 @@ const db = new PGlite({ extensions: { pgcrypto } });
 await db.exec(`
   create role anon nologin; create role authenticated nologin; create role service_role nologin;
   create schema auth; create schema storage;
-  create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb, created_at timestamptz default now());
+  create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb, created_at timestamptz default now(), banned_until timestamptz);
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
   grant usage on schema auth to authenticated, anon;
   grant execute on function auth.uid() to authenticated, anon;
@@ -209,6 +209,43 @@ await db.exec(`select set_config('test.uid', '${ADMIN}', false);`);
 verifier("admin désactive un commerçant", await tenter(`update public.commercants set actif = false where id = '${C1}'`), "autorisé");
 verifier("admin réactive un commerçant", await tenter(`update public.commercants set actif = true where id = '${C1}'`), "autorisé");
 await db.exec(`reset role;`);
+
+// --- Failles moyennes (audit 2026-11-08, migration 20261110090000) ------
+// a) Lien caisse/créance vers la vente d'un AUTRE commerçant : refusé.
+const venteC2 = (
+  await db.query(`insert into public.ventes (commercant_id, description, montant_total, prix_unitaire) values ('${C2}', 'vente B', 100, 100) returning id`)
+).rows[0].id;
+const venteC1 = (
+  await db.query(`insert into public.ventes (commercant_id, description, montant_total, prix_unitaire) values ('${C1}', 'vente A', 50, 50) returning id`)
+).rows[0].id;
+await db.exec(`set role authenticated; select set_config('test.uid', '${C1}', false);`);
+verifier("caisse liée à la vente d'un autre commerçant", await tenter(
+  `insert into public.caisse (commercant_id, type_mouvement, type_poche, montant, vente_id) values ('${C1}', 'entree', 'caisse', 1, '${venteC2}')`), "refusé");
+verifier("créance liée à la vente d'un autre commerçant", await tenter(
+  `insert into public.creances (commercant_id, client_nom, montant, vente_id) values ('${C1}', 'x', 1, '${venteC2}')`), "refusé");
+verifier("caisse liée à sa propre vente", await tenter(
+  `insert into public.caisse (commercant_id, type_mouvement, type_poche, montant, vente_id) values ('${C1}', 'entree', 'caisse', 50, '${venteC1}')`), "autorisé");
+verifier("mouvement manuel sans vente", await tenter(
+  `insert into public.caisse (commercant_id, type_mouvement, type_poche, montant) values ('${C1}', 'entree', 'caisse', 5)`), "autorisé");
+
+// b) Champs de cycle de vie non modifiables par le commerçant.
+verifier("commerçant → admin_notifie", await tenter(`update public.commercants set admin_notifie = not admin_notifie where id = '${C1}'`), "refusé");
+verifier("commerçant → created_at", await tenter(`update public.commercants set created_at = now() where id = '${C1}'`), "refusé");
+
+// c) Notification d'inscription : réservée au service_role, une seule fois,
+//    seulement pour un compte tout juste créé.
+verifier("notification appelée par un commerçant", await tenter(`select * from public.reserver_notification_inscription('${C1}')`), "refusé");
+await db.exec(`reset role;`);
+const NOUVEAU = "30000000-0000-0000-0000-000000000001";
+await db.query(`insert into auth.users (id, email, raw_user_meta_data) values ($1, 'nouveau@test', '{"nom_commerce":"<b>Boutique</b>"}'::jsonb)`, [NOUVEAU]);
+const resa1 = (await db.query(`select * from public.reserver_notification_inscription($1)`, [NOUVEAU])).rows;
+verifier("1re réservation : nom stocké renvoyé", resa1.map((r) => r.nom_commerce), ["<b>Boutique</b>"]);
+const resa2 = (await db.query(`select * from public.reserver_notification_inscription($1)`, [NOUVEAU])).rows;
+verifier("2e réservation refusée (pas de rejeu)", resa2.length, 0);
+const resaAncien = (await db.query(`select * from public.reserver_notification_inscription($1)`, [C1])).rows;
+verifier("compte ancien : pas de notification", resaAncien.length, 0);
+// Nettoyage : ces ventes de test ne doivent pas fausser les totaux vérifiés plus bas.
+await db.query(`delete from public.ventes where id in ($1, $2)`, [venteC1, venteC2]);
 
 // --- Mode maintenance ---------------------------------------------------
 await db.exec(`set role anon;`);

@@ -91,9 +91,25 @@ export async function proxy(request: NextRequest) {
     }
   } else if (isCommercantRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
+  } else if (isCommercantRoute && user && !(await estCommercantActif(supabase, user.id))) {
+    // Compte désactivé par l'admin (audit 2026-11-08) : avant, seul le
+    // formulaire de connexion le vérifiait, dans le navigateur. Une session
+    // déjà ouverte ou obtenue directement auprès de Supabase gardait l'accès.
+    return NextResponse.redirect(new URL("/login?compte=desactive", request.url));
   }
 
   return response;
+}
+
+// Faux uniquement si la fiche existe ET est désactivée (une fiche absente
+// ou illisible ne bloque pas : la RLS protège déjà les données).
+async function estCommercantActif(supabase: ClientProxy, userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("commercants")
+    .select("actif")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.actif !== false;
 }
 
 type ClientProxy = ReturnType<typeof createServerClient<Database>>;

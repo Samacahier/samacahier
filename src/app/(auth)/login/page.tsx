@@ -1,17 +1,32 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import AuthShell from "@/components/auth/AuthShell";
 
-export default function LoginPage() {
+const MESSAGE_COMPTE_DESACTIVE = "Ce compte a été désactivé. Contactez l'administrateur.";
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ compte?: string }>;
+}) {
   const router = useRouter();
+  // ?compte=desactive : renvoyé par le proxy quand une session ouverte
+  // appartient à un compte désactivé. On ferme alors cette session.
+  const compteDesactive = use(searchParams).compte === "desactive";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    compteDesactive ? MESSAGE_COMPTE_DESACTIVE : null,
+  );
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (compteDesactive) void createClient().auth.signOut();
+  }, [compteDesactive]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,7 +40,9 @@ export default function LoginPage() {
     });
 
     if (signInError || !data.user) {
-      setError(signInError?.message ?? "Connexion impossible.");
+      // Compte désactivé = banni dans Supabase Auth ("User is banned").
+      const banni = /banned/i.test(signInError?.message ?? "");
+      setError(banni ? MESSAGE_COMPTE_DESACTIVE : (signInError?.message ?? "Connexion impossible."));
       setLoading(false);
       return;
     }
@@ -51,7 +68,7 @@ export default function LoginPage() {
 
     if (commercant && !commercant.actif) {
       await supabase.auth.signOut();
-      setError("Ce compte a été désactivé. Contactez l'administrateur.");
+      setError(MESSAGE_COMPTE_DESACTIVE);
       setLoading(false);
       return;
     }

@@ -55,7 +55,7 @@ export async function getVenteById(id: string): Promise<Vente | null> {
 // Une vente à crédit/impayée avec un client réel doit avoir une créance liée
 // (créée ou mise à jour). Si ce n'est plus le cas (repassée payée, ou client
 // comptant), la créance existante est soldée plutôt que supprimée.
-async function syncCreanceForVente(supabase: SupabaseServerClient, vente: Vente) {
+async function syncCreanceForVente(supabase: SupabaseServerClient, vente: Vente): Promise<string | null> {
   const { data: existante } = await supabase
     .from("creances")
     .select("id")
@@ -67,9 +67,10 @@ async function syncCreanceForVente(supabase: SupabaseServerClient, vente: Vente)
 
   if (!doitAvoirCreance) {
     if (existante) {
-      await supabase.from("creances").update({ statut: "soldee" }).eq("id", existante.id);
+      const { error } = await supabase.from("creances").update({ statut: "soldee" }).eq("id", existante.id);
+      if (error) return error.message;
     }
-    return;
+    return null;
   }
 
   const { data: client } = await supabase
@@ -88,16 +89,15 @@ async function syncCreanceForVente(supabase: SupabaseServerClient, vente: Vente)
     vente_id: vente.id,
   };
 
-  if (existante) {
-    await supabase.from("creances").update(payload).eq("id", existante.id);
-  } else {
-    await supabase.from("creances").insert(payload);
-  }
+  const { error } = existante
+    ? await supabase.from("creances").update(payload).eq("id", existante.id)
+    : await supabase.from("creances").insert(payload);
+  return error ? error.message : null;
 }
 
 // Le montant réellement encaissé sur une vente alimente automatiquement une
 // entrée dans Ma Caisse. Pas d'entrée si rien n'a été encaissé (impayé).
-async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente) {
+async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente): Promise<string | null> {
   const { data: existante } = await supabase
     .from("caisse")
     .select("id")
@@ -107,8 +107,11 @@ async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente) 
   const montantEncaisse = vente.montant_encaisse ?? 0;
 
   if (montantEncaisse <= 0) {
-    if (existante) await supabase.from("caisse").delete().eq("id", existante.id);
-    return;
+    if (existante) {
+      const { error } = await supabase.from("caisse").delete().eq("id", existante.id);
+      if (error) return error.message;
+    }
+    return null;
   }
 
   const payload = {
@@ -121,11 +124,10 @@ async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente) 
     vente_id: vente.id,
   };
 
-  if (existante) {
-    await supabase.from("caisse").update(payload).eq("id", existante.id);
-  } else {
-    await supabase.from("caisse").insert(payload);
-  }
+  const { error } = existante
+    ? await supabase.from("caisse").update(payload).eq("id", existante.id)
+    : await supabase.from("caisse").insert(payload);
+  return error ? error.message : null;
 }
 
 // Applique un delta de quantité sur un produit du catalogue. Le stock peut
@@ -192,13 +194,20 @@ export async function createVente(
 
   if (error) return { error: messageErreur(error, "ventes") };
 
-  await syncCreanceForVente(supabase, vente);
-  await syncCaisseForVente(supabase, vente);
+  const erreurSync =
+    (await syncCreanceForVente(supabase, vente)) ?? (await syncCaisseForVente(supabase, vente));
   await syncStockForVente(supabase, null, vente);
 
   revalidatePath("/ventes");
   revalidatePath("/caisse");
   revalidatePath("/stocks");
+  if (erreurSync) {
+    // Avant, ces erreurs étaient ignorées en silence. Elles sont désormais
+    // journalisées (Vercel → Logs, "[ventes]"). On ne renvoie pas d'erreur
+    // au formulaire : la vente est déjà enregistrée, et un message d'échec
+    // pousserait le commerçant à la ressaisir (doublon).
+    console.error(`[ventes] vente ${vente.id} : synchronisation caisse/créance échouée :`, erreurSync);
+  }
   return { error: null, vente };
 }
 
@@ -223,13 +232,20 @@ export async function updateVente(
 
   if (error) return { error: messageErreur(error, "ventes") };
 
-  await syncCreanceForVente(supabase, vente);
-  await syncCaisseForVente(supabase, vente);
+  const erreurSync =
+    (await syncCreanceForVente(supabase, vente)) ?? (await syncCaisseForVente(supabase, vente));
   await syncStockForVente(supabase, avant, vente);
 
   revalidatePath("/ventes");
   revalidatePath("/caisse");
   revalidatePath("/stocks");
+  if (erreurSync) {
+    // Avant, ces erreurs étaient ignorées en silence. Elles sont désormais
+    // journalisées (Vercel → Logs, "[ventes]"). On ne renvoie pas d'erreur
+    // au formulaire : la vente est déjà enregistrée, et un message d'échec
+    // pousserait le commerçant à la ressaisir (doublon).
+    console.error(`[ventes] vente ${vente.id} : synchronisation caisse/créance échouée :`, erreurSync);
+  }
   return { error: null, vente };
 }
 
