@@ -8,6 +8,8 @@ const LIBELLES_ACTION: Record<string, string> = {
   activation: "Activation",
   desactivation: "Désactivation",
   reinitialisation_mot_de_passe: "Réinitialisation mot de passe",
+  maintenance_activee: "Maintenance activée",
+  maintenance_desactivee: "Maintenance désactivée",
   correction_infos: "Correction d'infos",
 };
 

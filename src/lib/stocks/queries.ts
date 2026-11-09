@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { lireTout } from "@/lib/utils/lire-tout";
 import type { Database, Stock } from "@/types/database";
+import { messageErreur } from "@/lib/utils/erreurs";
 
 type StockInsert = Database["public"]["Tables"]["stocks"]["Insert"];
 
@@ -13,14 +15,19 @@ export type StockFormInput = Omit<
 
 export async function listStocks(commercantId: string): Promise<Stock[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("stocks")
-    .select("*")
-    .eq("commercant_id", commercantId)
-    .order("nom_article", { ascending: true });
+  // lireTout : au-delà de 1000 lignes, l'API tronquait la liste en silence.
+  const { data, error } = await lireTout((d, f) =>
+    supabase
+      .from("stocks")
+      .select("*")
+      .eq("commercant_id", commercantId)
+      .order("nom_article", { ascending: true })
+      .order("id")
+      .range(d, f),
+  );
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return data;
 }
 
 export async function createStock(input: StockFormInput) {
@@ -35,7 +42,7 @@ export async function createStock(input: StockFormInput) {
     .from("stocks")
     .insert({ ...input, commercant_id: user.id });
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "stocks") };
 
   revalidatePath("/stocks");
   return { error: null };
@@ -48,7 +55,7 @@ export async function updateStock(id: string, input: Partial<StockFormInput>) {
     .update({ ...input, updated_at: new Date().toISOString() })
     .eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "stocks") };
 
   revalidatePath("/stocks");
   return { error: null };
@@ -58,7 +65,7 @@ export async function deleteStock(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("stocks").delete().eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "stocks") };
 
   revalidatePath("/stocks");
   return { error: null };

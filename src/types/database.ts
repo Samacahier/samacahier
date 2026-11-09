@@ -300,6 +300,25 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["admin_logs"]["Insert"]>;
         Relationships: [];
       };
+      // Ligne unique (id = 1) — voir migration 20261108130000_mode_maintenance.
+      parametres_plateforme: {
+        Row: {
+          id: number;
+          maintenance_active: boolean;
+          maintenance_message: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: number;
+          maintenance_active?: boolean;
+          maintenance_message?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["parametres_plateforme"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       // Calcule chiffre_affaires/solde_caisse/derniere_activite par
@@ -314,10 +333,39 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: { [_ in never]: never };
+    // Voir migration 20261108120000_admin_kpis_et_ajuster_stock.
+    Functions: {
+      admin_kpis: {
+        Args: Record<PropertyKey, never>;
+        Returns: AdminKpisSql;
+      };
+      ajuster_stock_quantite: {
+        Args: { p_produit_id: string; p_delta: number };
+        Returns: undefined;
+      };
+      // Voir migration 20261108140000_admin_rapports_agreges.
+      admin_ca_par_mois: {
+        Args: { p_nombre_mois?: number };
+        Returns: { mois: string; ca: number }[];
+      };
+      admin_ca_par_commercant: {
+        Args: { p_debut: string; p_fin: string; p_commercant_ids?: string[] };
+        Returns: { commercant_id: string; ca: number; nombre_ventes: number }[];
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
+};
+
+// Résultat JSON de la fonction SQL public.admin_kpis().
+export type AdminKpisSql = {
+  total_commercants: number;
+  commercants_actifs: number;
+  ca_cumule_mois: number;
+  nouveaux_inscrits_7j: number;
+  inactifs_14j: number;
+  inscriptions_par_jour: { date: string; count: number }[] | null;
 };
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];

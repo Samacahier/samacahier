@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Vente } from "@/types/database";
+import { messageErreur } from "@/lib/utils/erreurs";
 
 type VenteInsert = Database["public"]["Tables"]["ventes"]["Insert"];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -13,16 +14,30 @@ export type VenteFormInput = Omit<
   "id" | "commercant_id" | "created_at"
 >;
 
-export async function listVentes(commercantId: string): Promise<Vente[]> {
+export type VentesPage = { ventes: Vente[]; total: number };
+
+// Liste paginée côté base (page de `taille` lignes, la plus récente d'abord).
+// Remplace le chargement de toute la liste : plus rapide sur mobile, et plus
+// de troncature silencieuse à 1000 lignes.
+export async function listVentesPage(
+  commercantId: string,
+  page: number,
+  taille: number,
+): Promise<VentesPage> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const debut = (page - 1) * taille;
+
+  const { data, error, count } = await supabase
     .from("ventes")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("commercant_id", commercantId)
-    .order("date_vente", { ascending: false });
+    .order("date_vente", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("id")
+    .range(debut, debut + taille - 1);
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return { ventes: data ?? [], total: count ?? 0 };
 }
 
 export async function getVenteById(id: string): Promise<Vente | null> {
@@ -115,26 +130,29 @@ async function syncCaisseForVente(supabase: SupabaseServerClient, vente: Vente) 
 
 // Applique un delta de quantité sur un produit du catalogue. Le stock peut
 // devenir négatif (aucun blocage) : l'alerte de seuil existante suffit.
+//
+// Atomique : la fonction SQL fait `quantite = quantite + delta` en une seule
+// instruction. L'ancienne version (lire la quantité, puis écrire lue + delta)
+// perdait une déduction quand deux ventes du même produit arrivaient en même
+// temps — cause des écarts de stock signalés "parfois".
 async function ajusterQuantiteStock(
   supabase: SupabaseServerClient,
   produitId: string,
   delta: number,
 ) {
-  const { data: produit } = await supabase
-    .from("stocks")
-    .select("quantite")
-    .eq("id", produitId)
-    .single();
+  if (delta === 0) return;
 
-  if (!produit) return;
+  const { error } = await supabase.rpc("ajuster_stock_quantite", {
+    p_produit_id: produitId,
+    p_delta: delta,
+  });
 
-  await supabase
-    .from("stocks")
-    .update({
-      quantite: produit.quantite + delta,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", produitId);
+  if (error) {
+    console.error(
+      `[stocks] ajustement de ${delta} sur le produit ${produitId} échoué :`,
+      error.message,
+    );
+  }
 }
 
 // Une vente liée à un produit du catalogue déduit sa quantité du stock. Pas
@@ -172,7 +190,7 @@ export async function createVente(
     .select()
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "ventes") };
 
   await syncCreanceForVente(supabase, vente);
   await syncCaisseForVente(supabase, vente);
@@ -203,7 +221,7 @@ export async function updateVente(
     .select()
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "ventes") };
 
   await syncCreanceForVente(supabase, vente);
   await syncCaisseForVente(supabase, vente);
@@ -225,7 +243,7 @@ export async function deleteVente(id: string) {
     .select("produit_id, quantite")
     .single();
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "ventes") };
 
   await syncStockForVente(supabase, vente, null);
 

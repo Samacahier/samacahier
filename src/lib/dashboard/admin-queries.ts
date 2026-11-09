@@ -3,11 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Commercant } from "@/types/database";
 
-// Un commerçant sans vente/dépense/mouvement de caisse depuis ce seuil est
-// considéré inactif dans la vue d'ensemble admin.
-const SEUIL_INACTIVITE_JOURS = 14;
-const JOURS_GRAPHIQUE_INSCRIPTIONS = 30;
-
 export type CommercantOverview = {
   commercant: Commercant;
   chiffreAffaires: number;
@@ -83,121 +78,8 @@ export async function listCommercantsOverviewPage(
   return { overviews, total: count ?? 0 };
 }
 
-// Bornes [début, fin) du mois en cours, au format date ISO (YYYY-MM-DD).
-function bornesMoisEnCours() {
-  const maintenant = new Date();
-  const debut = new Date(
-    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), 1),
-  )
-    .toISOString()
-    .slice(0, 10);
-  const fin = new Date(
-    Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth() + 1, 1),
-  )
-    .toISOString()
-    .slice(0, 10);
-  return { debut, fin };
-}
-
-// Dernière activité (vente, dépense ou mouvement de caisse) de chaque
-// commerçant, en 3 requêtes agrégées (une par table) au lieu d'une requête
-// par commerçant : chaque table est déjà triée par date décroissante, donc
-// la première ligne rencontrée pour un commerçant donné est sa plus récente.
-async function getDernieresActivitesParCommercant(): Promise<Map<string, string>> {
-  const supabase = await createClient();
-
-  const [ventes, depenses, caisse] = await Promise.all([
-    supabase
-      .from("ventes")
-      .select("commercant_id, created_at")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("depenses")
-      .select("commercant_id, created_at")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("caisse")
-      .select("commercant_id, created_at")
-      .order("created_at", { ascending: false }),
-  ]);
-
-  const dernieres = new Map<string, string>();
-  for (const lignes of [ventes.data, depenses.data, caisse.data]) {
-    for (const ligne of lignes ?? []) {
-      const actuelle = dernieres.get(ligne.commercant_id);
-      if (!actuelle || ligne.created_at > actuelle) {
-        dernieres.set(ligne.commercant_id, ligne.created_at);
-      }
-    }
-  }
-  return dernieres;
-}
-
-// Liste tous les commerçants (accessible uniquement à l'admin via RLS) avec
-// leurs indicateurs clés. Chaque indicateur est calculé à partir de requêtes
-// agrégées sur l'ensemble des commerçants (nombre de requêtes constant),
-// plutôt que d'une requête par commerçant (pattern N+1 précédemment en place
-// via getDashboardStats/getDerniereActivite, responsable de la lenteur
-// perçue au chargement de la Vue d'ensemble et de la liste Commerçants).
-export async function listCommercantsOverview(): Promise<CommercantOverview[]> {
-  const supabase = await createClient();
-  const { data: commercants, error } = await supabase
-    .from("commercants")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-  if (!commercants || commercants.length === 0) return [];
-
-  const { debut, fin } = bornesMoisEnCours();
-
-  const [ventesMois, caisse, dernieresActivites] = await Promise.all([
-    supabase
-      .from("ventes")
-      .select("commercant_id, montant_total")
-      .gte("date_vente", debut)
-      .lt("date_vente", fin),
-    supabase.from("caisse").select("commercant_id, type_mouvement, montant, type_poche"),
-    getDernieresActivitesParCommercant(),
-  ]);
-
-  const caParCommercant = new Map<string, number>();
-  for (const vente of ventesMois.data ?? []) {
-    caParCommercant.set(
-      vente.commercant_id,
-      (caParCommercant.get(vente.commercant_id) ?? 0) + vente.montant_total,
-    );
-  }
-
-  const mouvementsParCommercant = new Map<string, NonNullable<typeof caisse.data>>();
-  for (const mouvement of caisse.data ?? []) {
-    const liste = mouvementsParCommercant.get(mouvement.commercant_id) ?? [];
-    liste.push(mouvement);
-    mouvementsParCommercant.set(mouvement.commercant_id, liste);
-  }
-
-  return commercants.map((commercant) => {
-    const mouvements = mouvementsParCommercant.get(commercant.id) ?? [];
-    const soldeDune = (poche: "caisse" | "poche", initial: number) =>
-      initial +
-      mouvements
-        .filter((m) => m.type_poche === poche)
-        .reduce((solde, m) => solde + (m.type_mouvement === "entree" ? m.montant : -m.montant), 0);
-
-    return {
-      commercant,
-      chiffreAffaires: caParCommercant.get(commercant.id) ?? 0,
-      // Solde combiné (Ma Caisse + Ma Poche) : équivalent au solde de
-      // caisse global affiché avant l'introduction des deux poches.
-      soldeCaisse:
-        soldeDune("caisse", commercant.solde_initial_caisse ?? 0) +
-        soldeDune("poche", commercant.solde_initial_poche ?? 0),
-      derniereActivite: dernieresActivites.get(commercant.id) ?? null,
-    };
-  });
-}
-
 export type AdminKpis = {
+  totalCommercants: number;
   commercantsActifs: number;
   caCumuleMois: number;
   nouveauxInscrits7j: number;
@@ -205,58 +87,38 @@ export type AdminKpis = {
   inscriptionsParJour: { date: string; count: number }[];
 };
 
-async function getCaCumuleMoisPlateforme(): Promise<number> {
+// KPIs de la Vue d'ensemble, agrégés par Postgres (fonction SQL admin_kpis,
+// migration 20261108120000). Remplace l'ancien calcul en mémoire à partir de
+// listes complètes, tronquées à 1000 lignes par l'API Supabase : c'est ce
+// qui bloquait "Commerçants actifs" à 1000 et faussait le CA du mois et le
+// nombre d'inactifs. Un commerçant est inactif s'il n'a ni vente, ni dépense,
+// ni mouvement de caisse depuis 14 jours (date d'inscription à défaut).
+export async function getAdminKpis(): Promise<AdminKpis> {
   const supabase = await createClient();
-  const { debut, fin } = bornesMoisEnCours();
+  const { data, error } = await supabase.rpc("admin_kpis");
 
-  const { data } = await supabase
-    .from("ventes")
-    .select("montant_total")
-    .gte("date_vente", debut)
-    .lt("date_vente", fin);
-
-  return (data ?? []).reduce((somme, vente) => somme + vente.montant_total, 0);
-}
-
-// KPIs de pilotage de la plateforme, dérivés de la liste des commerçants
-// déjà chargée (évite de re-requêter) sauf pour le CA cumulé, agrégé en une
-// seule requête tous commerçants confondus.
-export async function getAdminKpis(overviews: CommercantOverview[]): Promise<AdminKpis> {
-  const maintenant = Date.now();
-  const joursDepuis = (date: string) =>
-    (maintenant - new Date(date).getTime()) / (1000 * 60 * 60 * 24);
-
-  const commercantsActifs = overviews.filter((o) => o.commercant.actif).length;
-
-  const nouveauxInscrits7j = overviews.filter(
-    (o) => joursDepuis(o.commercant.created_at) <= 7,
-  ).length;
-
-  const inactifs14j = overviews.filter((o) => {
-    const reference = o.derniereActivite ?? o.commercant.created_at;
-    return joursDepuis(reference) > SEUIL_INACTIVITE_JOURS;
-  }).length;
-
-  const compteParJour = new Map<string, number>();
-  for (let i = 0; i < JOURS_GRAPHIQUE_INSCRIPTIONS; i++) {
-    const jour = new Date(maintenant - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    compteParJour.set(jour, 0);
-  }
-  for (const { commercant } of overviews) {
-    const jour = commercant.created_at.slice(0, 10);
-    if (compteParJour.has(jour)) {
-      compteParJour.set(jour, (compteParJour.get(jour) ?? 0) + 1);
-    }
-  }
-  const inscriptionsParJour = Array.from(compteParJour.entries())
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  if (error) throw new Error(error.message);
 
   return {
-    commercantsActifs,
-    caCumuleMois: await getCaCumuleMoisPlateforme(),
-    nouveauxInscrits7j,
-    inactifs14j,
-    inscriptionsParJour,
+    totalCommercants: Number(data.total_commercants),
+    commercantsActifs: Number(data.commercants_actifs),
+    caCumuleMois: Number(data.ca_cumule_mois),
+    nouveauxInscrits7j: Number(data.nouveaux_inscrits_7j),
+    inactifs14j: Number(data.inactifs_14j),
+    inscriptionsParJour: (data.inscriptions_par_jour ?? []).map((jour) => ({
+      date: jour.date,
+      count: Number(jour.count),
+    })),
   };
+}
+
+// Top commerçants par CA du mois : tri + limite faits en base via la vue
+// admin_commercants_overview (au lieu de trier une liste tronquée à 1000).
+export async function listTopCommercants(nombre: number): Promise<CommercantOverview[]> {
+  const { overviews } = await listCommercantsOverviewPage({
+    page: 1,
+    pageSize: nombre,
+    tri: "ca",
+  });
+  return overviews;
 }

@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { lireTout } from "@/lib/utils/lire-tout";
 import type { Database, Creance } from "@/types/database";
+import { messageErreur } from "@/lib/utils/erreurs";
 
 type CreanceInsert = Database["public"]["Tables"]["creances"]["Insert"];
 
@@ -13,14 +15,19 @@ export type CreanceFormInput = Omit<
 
 export async function listCreances(commercantId: string): Promise<Creance[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("creances")
-    .select("*")
-    .eq("commercant_id", commercantId)
-    .order("created_at", { ascending: false });
+  // lireTout : au-delà de 1000 lignes, l'API tronquait la liste en silence.
+  const { data, error } = await lireTout((d, f) =>
+    supabase
+      .from("creances")
+      .select("*")
+      .eq("commercant_id", commercantId)
+      .order("created_at", { ascending: false })
+      .order("id")
+      .range(d, f),
+  );
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return data;
 }
 
 export async function createCreance(input: CreanceFormInput) {
@@ -35,7 +42,7 @@ export async function createCreance(input: CreanceFormInput) {
     .from("creances")
     .insert({ ...input, commercant_id: user.id });
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "creances") };
 
   revalidatePath("/creances");
   return { error: null };
@@ -45,7 +52,7 @@ export async function updateCreance(id: string, input: Partial<CreanceFormInput>
   const supabase = await createClient();
   const { error } = await supabase.from("creances").update(input).eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "creances") };
 
   revalidatePath("/creances");
   return { error: null };
@@ -55,7 +62,7 @@ export async function deleteCreance(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("creances").delete().eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return { error: messageErreur(error, "creances") };
 
   revalidatePath("/creances");
   return { error: null };

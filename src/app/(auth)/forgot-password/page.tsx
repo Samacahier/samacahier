@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { demanderReinitialisationMotDePasse } from "@/lib/auth/reset-password";
 import AuthShell from "@/components/auth/AuthShell";
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lien?: string }>;
+}) {
+  // ?lien=invalide : renvoyé par /auth/confirm quand le lien reçu par
+  // e-mail est expiré ou déjà utilisé.
+  const lienInvalide = use(searchParams).lien === "invalide";
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [envoye, setEnvoye] = useState(false);
@@ -35,6 +42,12 @@ export default function ForgotPasswordPage() {
         </Link>
       }
     >
+      {lienInvalide && !envoye && (
+        <p className="mb-4 rounded-xl border border-status-impaye bg-status-impaye-bg px-4 py-3 text-sm text-status-impaye">
+          Ce lien de réinitialisation est invalide ou a expiré. Demandez-en un nouveau ci-dessous.
+        </p>
+      )}
+
       {envoye ? (
         <p className="rounded-xl border border-status-paye bg-status-paye-bg px-4 py-3 text-sm text-status-paye">
           Si un compte existe avec cette adresse, un e-mail avec le lien de réinitialisation vient
