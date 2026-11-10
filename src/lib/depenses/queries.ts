@@ -41,7 +41,7 @@ export async function listDepensesPage(
 
 // Chaque dépense enregistrée débite automatiquement la poche choisie
 // (source) dans Trésorerie, via une sortie de caisse liée.
-async function syncCaisseForDepense(supabase: SupabaseServerClient, depense: Depense) {
+async function syncCaisseForDepense(supabase: SupabaseServerClient, depense: Depense): Promise<string | null> {
   const { data: existante } = await supabase
     .from("caisse")
     .select("id")
@@ -58,11 +58,10 @@ async function syncCaisseForDepense(supabase: SupabaseServerClient, depense: Dep
     depense_id: depense.id,
   };
 
-  if (existante) {
-    await supabase.from("caisse").update(payload).eq("id", existante.id);
-  } else {
-    await supabase.from("caisse").insert(payload);
-  }
+  const { error } = existante
+    ? await supabase.from("caisse").update(payload).eq("id", existante.id)
+    : await supabase.from("caisse").insert(payload);
+  return error ? error.message : null;
 }
 
 export async function createDepense(input: DepenseFormInput) {
@@ -81,7 +80,12 @@ export async function createDepense(input: DepenseFormInput) {
 
   if (error) return { error: messageErreur(error, "depenses") };
 
-  await syncCaisseForDepense(supabase, depense);
+  const erreurSync = await syncCaisseForDepense(supabase, depense);
+  if (erreurSync) {
+    // Journalisé (Vercel → Logs) au lieu d'être ignoré ; pas d'erreur au
+    // formulaire, la dépense étant déjà enregistrée (évite un doublon).
+    console.error(`[depenses] dépense ${depense.id} : synchronisation caisse échouée :`, erreurSync);
+  }
 
   revalidatePath("/depenses");
   revalidatePath("/caisse");
@@ -99,7 +103,12 @@ export async function updateDepense(id: string, input: Partial<DepenseFormInput>
 
   if (error) return { error: messageErreur(error, "depenses") };
 
-  await syncCaisseForDepense(supabase, depense);
+  const erreurSync = await syncCaisseForDepense(supabase, depense);
+  if (erreurSync) {
+    // Journalisé (Vercel → Logs) au lieu d'être ignoré ; pas d'erreur au
+    // formulaire, la dépense étant déjà enregistrée (évite un doublon).
+    console.error(`[depenses] dépense ${depense.id} : synchronisation caisse échouée :`, erreurSync);
+  }
 
   revalidatePath("/depenses");
   revalidatePath("/caisse");

@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCommercant, updateCommercant } from "@/lib/commercants/queries";
-import { rendreEmailHtml } from "@/lib/email/template";
+import { echapperHtml, rendreEmailHtml } from "@/lib/email/template";
 import { envoyerEmail } from "@/lib/email/resend";
 
 async function verifierAdmin(): Promise<{ error: string | null; adminId: string | null }> {
@@ -50,6 +50,20 @@ export async function toggleCommercantActif(commercantId: string, actif: boolean
   const { error } = await updateCommercant(commercantId, { actif });
   if (error) return { error };
 
+  // Bloque aussi le compte côté Supabase Auth (audit 2026-11-08) : un compte
+  // banni ne peut plus se connecter ni renouveler sa session, même en
+  // appelant Supabase directement. Réactivation = levée du bannissement.
+  const admin = createAdminClient();
+  const { error: erreurBan } = await admin.auth.admin.updateUserById(commercantId, {
+    ban_duration: actif ? "none" : "876000h",
+  });
+  if (erreurBan) {
+    console.error("[admin] (dé)bannissement du compte échoué :", erreurBan.message);
+    return {
+      error: `Statut enregistré, mais le blocage de connexion n'a pas pu être ${actif ? "levé" : "appliqué"}. Réessayez.`,
+    };
+  }
+
   const commercant = await getCommercant(commercantId);
   await enregistrerLog(
     adminId,
@@ -74,7 +88,7 @@ export async function sendCommercantEmail(commercantId: string, objet: string, m
   const html = rendreEmailHtml({
     eyebrow: "Message de l'administration",
     titre: objet,
-    intro: message.replace(/\n/g, "<br>"),
+    intro: echapperHtml(message).replace(/\n/g, "<br>"),
     pied: "Vous recevez cet e-mail de la part de l'administration de Sama Cahier.",
   });
 

@@ -28,6 +28,7 @@ type CommercantRow = {
   solde_initial_caisse: number;
   solde_initial_poche: number;
   actif: boolean;
+  admin_notifie: boolean;
 };
 
 export type Database = {
@@ -344,6 +345,11 @@ export type Database = {
         Returns: undefined;
       };
       // Voir migration 20261108140000_admin_rapports_agreges.
+      // Voir migration 20261110090000_fix_failles_moyennes (service_role).
+      reserver_notification_inscription: {
+        Args: { p_id: string };
+        Returns: { nom_commerce: string; activite: string | null }[];
+      };
       admin_ca_par_mois: {
         Args: { p_nombre_mois?: number };
         Returns: { mois: string; ca: number }[];

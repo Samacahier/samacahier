@@ -15,15 +15,16 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const tokenHash = searchParams.get("token_hash");
-  const type = searchParams.get("type") as EmailOtpType | null;
-  const next = cheminInterneOuDefaut(searchParams.get("next"));
+  const typeBrut = searchParams.get("type");
+  const type = TYPES_OTP.includes(typeBrut as EmailOtpType) ? (typeBrut as EmailOtpType) : null;
+  const cible = cibleInterneOuDefaut(searchParams.get("next"), request.url);
 
   if (tokenHash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
 
     if (!error) {
-      return NextResponse.redirect(new URL(next, request.url));
+      return NextResponse.redirect(cible);
     }
 
     console.error("[auth/confirm] verifyOtp a échoué :", error.message);
@@ -32,9 +33,24 @@ export async function GET(request: NextRequest) {
   return NextResponse.redirect(new URL("/forgot-password?lien=invalide", request.url));
 }
 
-// N'accepte qu'un chemin relatif au site ("/..."), jamais une URL externe ni
-// "//domaine" — évite une redirection ouverte via le paramètre `next`.
-function cheminInterneOuDefaut(next: string | null): string {
-  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
-  return "/dashboard";
+const TYPES_OTP: EmailOtpType[] = ["recovery", "signup", "invite", "magiclink", "email_change", "email"];
+
+// Cible de redirection après vérification : uniquement une page de CE site.
+//
+// Sécurité (audit 2026-11-08) : l'ancienne vérification par préfixe
+// (commence par "/" mais pas par "//") laissait passer "/\evil.example" ou
+// "/<tabulation>/evil.example", que le navigateur lit comme "//evil.example"
+// → redirection vers un site externe. Désormais on rejette antislash et
+// caractères de contrôle, on résout l'URL UNE seule fois, on vérifie
+// l'origine ET que le chemin résolu ne commence pas par "//" (cas
+// "/.//evil.example"), et on redirige vers cet objet URL déjà résolu — sans
+// le re-résoudre, ce qui rouvrirait la faille.
+function cibleInterneOuDefaut(next: string | null, base: string): URL {
+  const defaut = new URL("/dashboard", base);
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(next)) {
+    return defaut;
+  }
+  const cible = new URL(next, base);
+  if (cible.origin !== defaut.origin || cible.pathname.startsWith("//")) return defaut;
+  return cible;
 }

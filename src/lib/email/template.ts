@@ -9,12 +9,33 @@ type EmailTemplateOptions = {
   pied: string;
 };
 
+// Échappe une valeur pour l'insérer dans du HTML (texte ou attribut).
+// À appliquer à toute donnée saisie par un utilisateur avant de la placer
+// dans `intro` ou `recap`, qui sont insérés tels quels.
+export function echapperHtml(valeur: string): string {
+  return valeur.replace(/[&<>"']/g, (c) =>
+    c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",
+  );
+}
+
 // Coquille visuelle commune à tous les emails envoyés par l'app (cf.
 // email-template-model.html à la racine) : en-tête brun avec wordmark,
 // bloc de récap encadré (optionnel), bouton d'action (optionnel), pied de
-// page. `recap` et le contenu texte sont insérés tels quels (HTML) —
-// à l'appelant d'échapper les données utilisateur avant interpolation.
-export function rendreEmailHtml({ eyebrow, titre, intro, recap, bouton, pied }: EmailTemplateOptions): string {
+// page.
+//
+// Sécurité (audit 2026-11-08) : eyebrow, titre, pied, libellé et lien du
+// bouton sont ÉCHAPPÉS ici, par défaut. Seuls `intro` et `recap` restent du
+// HTML brut (pour <br>, <strong>…) : l'appelant DOIT y échapper toute donnée
+// utilisateur avec echapperHtml(). Avant, rien n'était échappé et le nom de
+// commerce saisi à l'inscription arrivait tel quel en HTML dans l'email admin.
+export function rendreEmailHtml(options: EmailTemplateOptions): string {
+  const eyebrow = echapperHtml(options.eyebrow);
+  const titre = echapperHtml(options.titre);
+  const pied = echapperHtml(options.pied);
+  const { intro, recap } = options;
+  const bouton = options.bouton
+    ? { label: echapperHtml(options.bouton.label), href: echapperHtml(options.bouton.href) }
+    : undefined;
   return `<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"></head>
